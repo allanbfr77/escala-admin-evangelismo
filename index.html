@@ -210,6 +210,71 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 #loading-overlay.hidden { display:none; }
 .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── MOBILE SIDEBAR TOGGLE ── */
+.btn-sidebar-toggle {
+  display: none;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-2); border-radius: 6px;
+  padding: 6px 10px; cursor: pointer; font-size: 18px; line-height: 1;
+}
+
+/* ── SIDEBAR OVERLAY BACKDROP (mobile) ── */
+.sidebar-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 49;
+}
+.sidebar-backdrop.open { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .login-card { padding: 32px 20px; margin: 16px; }
+
+  .topbar { padding: 0 14px; gap: 10px; }
+  .topbar-status { display: none; }
+  .btn-sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+
+  .layout { position: relative; overflow: hidden; }
+
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0;
+    width: 280px; z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  .main { padding: 14px; gap: 14px; }
+
+  .toolbar { gap: 8px; }
+  .toolbar-title { font-size: 15px; flex: 1; }
+  .btn { padding: 7px 11px; font-size: 12px; }
+
+  /* Table → vertical cards on mobile */
+  .table-wrap { background: transparent; border: none; border-radius: 0; overflow: visible; }
+  table.escala, table.escala thead, table.escala tbody,
+  table.escala tr, table.escala th, table.escala td { display: block; width: 100%; }
+  table.escala thead tr { display: none; }
+  table.escala tbody tr { display: flex; flex-direction: column; gap: 10px; }
+  table.escala tbody td {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 0; overflow: hidden;
+  }
+  table.escala tbody td::before {
+    content: attr(data-label);
+    display: block; padding: 10px 14px 8px;
+    font-size: 11px; font-weight: 700; color: var(--text-2);
+    background: var(--surface2); border-bottom: 1px solid var(--border2);
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .slot-cell { min-height: 40px; }
+  .name-row { font-size: 13px; padding: 8px 14px; }
+
+  .stat-pill { font-size: 12px; padding: 6px 10px; }
+
+  .unavail-section { padding: 12px 14px; }
+  .unavail-row { font-size: 12px; }
+}
 </style>
 </head>
 <body>
@@ -239,6 +304,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 
 <div id="app">
   <div class="topbar">
+    <button class="btn-sidebar-toggle" onclick="toggleSidebar()">☰</button>
     <div class="topbar-logo"><span class="topbar-title">Escala Admin</span></div>
     <span class="topbar-badge">Maio 2026</span>
     <div class="topbar-spacer"></div>
@@ -247,7 +313,8 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   </div>
 
   <div class="layout">
-    <div class="sidebar">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>Membros (<span id="sb-count">0</span>)</h3>
         <div class="sidebar-search">
@@ -484,7 +551,7 @@ function renderTable() {
   ).join('')}</tr>`;
   let bodyHtml = '<tr>';
   GROUP_DATES.forEach(d => {
-    bodyHtml += `<td><div class="slot-cell">`;
+    bodyHtml += `<td data-label="${d.day} · ${d.full} · ${d.hora}"><div class="slot-cell">`;
     schedule[d.key].forEach((name, i) => {
       const zebraClass = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
       bodyHtml += `<div class="name-row ${zebraClass}" onclick="toggleAlloc('${name}','${d.key}')">${name}<span class="remove">×</span></div>`;
@@ -508,6 +575,18 @@ function renderStats() {
     <div class="stat-pill">Total Alocados: <span class="num">${total}</span></div>
     <div class="stat-pill">Membros com Dados: <span class="num">${MEMBERS.filter(m => memberData[m]).length}</span></div>
   `;
+}
+
+/* SIDEBAR MOBILE */
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebar-backdrop');
+  const open = sb.classList.toggle('open');
+  bd.classList.toggle('open', open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('open');
 }
 
 /* UI UTILS */
