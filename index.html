@@ -83,7 +83,6 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 /* ── APP ── */
 #app { display: none; min-height: 100vh; }
 
-/* TOPBAR */
 .topbar {
   height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 24px; gap: 16px;
@@ -113,10 +112,8 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-/* LAYOUT */
 .layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
 
-/* SIDEBAR */
 .sidebar {
   width: 280px; min-width: 280px;
   background: var(--surface); border-right: 1px solid var(--border);
@@ -124,23 +121,24 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .sidebar-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border2); }
 .sidebar-header h3 { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; }
-.sidebar-search {
-  margin-top: 10px; position: relative;
-}
+.sidebar-search { margin-top: 10px; position: relative; }
 .sidebar-search svg { position:absolute; left:9px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-3); }
 .sidebar-search input {
   width: 100%; padding: 7px 10px 7px 30px;
   background: var(--bg); border: 1px solid var(--border2);
   border-radius: 7px; color: var(--text);
   font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
-  transition: border-color .15s;
 }
-.sidebar-search input:focus { border-color: var(--green); }
-.sidebar-list { flex: 1; overflow-y: auto; padding: 8px; }
-.sidebar-list::-webkit-scrollbar { width: 4px; }
-.sidebar-list::-webkit-scrollbar-track { background: transparent; }
-.sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.sidebar-actions { padding: 8px 8px 0; }
+.btn-clear-sel {
+  width: 100%; padding: 6px 10px; font-size: 12px; font-weight: 600;
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--text-2); border-radius: 6px; cursor: pointer;
+  transition: all .15s; text-align: center;
+}
+.btn-clear-sel:hover { border-color: var(--amber); color: var(--amber); }
 
+.sidebar-list { flex: 1; overflow-y: auto; padding: 8px; }
 .person-item {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 10px; border-radius: 8px; cursor: pointer;
@@ -148,500 +146,250 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .person-item:hover { background: var(--surface2); }
 .person-item.active { background: var(--green-glow); }
-.person-avatar {
-  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
-}
-.person-name { font-size: 13px; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.person-count {
-  font-size: 10px; font-weight: 700; padding: 2px 7px;
-  border-radius: 100px; flex-shrink: 0;
-}
+.person-name { font-size: 13px; font-weight: 500; flex: 1; }
+.person-count { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
 
-/* PERSON PANEL (inside sidebar) */
-.person-panel {
-  border-top: 1px solid var(--border); padding: 14px;
-  display: none;
-}
+.person-panel { border-top: 1px solid var(--border); padding: 14px; display: none; }
 .person-panel.open { display: block; }
-.panel-name { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+.panel-name { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
 .panel-dates { display: flex; flex-direction: column; gap: 5px; }
 .panel-date-btn {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 10px; border-radius: 7px; cursor: pointer;
   background: var(--bg); border: 1px solid var(--border2);
-  font-size: 12px; font-weight: 500; color: var(--text);
-  transition: all .12s; user-select: none;
+  font-size: 12px; transition: all .12s;
 }
-.panel-date-btn:hover { border-color: var(--green); background: var(--green-glow); }
-.panel-date-btn.allocated { background: var(--green-glow); border-color: rgba(63,185,80,.4); color: var(--green); }
-.panel-date-btn .alloc-icon { font-size: 14px; }
-.panel-date-tag {
-  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px;
-  background: var(--surface2); color: var(--text-2); text-transform: uppercase; letter-spacing: 0.4px;
-}
+.panel-date-btn.allocated { background: var(--green-glow); border-color: var(--green); color: var(--green); }
 
-/* MAIN */
 .main { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
-.main::-webkit-scrollbar { width: 6px; }
-.main::-webkit-scrollbar-track { background: transparent; }
-.main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* TOOLBAR */
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .toolbar-title { font-size: 18px; font-weight: 700; }
-.toolbar-sub { font-size: 13px; color: var(--text-2); }
-.toolbar-spacer { flex: 1; }
-.btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: all .15s; font-family: 'DM Sans', sans-serif; }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-2); }
-.btn-outline:hover { border-color: var(--text-2); color: var(--text); }
-.btn-green { background: var(--green-dim); color: #fff; box-shadow: 0 0 14px var(--green-glow); }
-.btn-green:hover { background: var(--green); }
-.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text-2); font-size: 12px; padding: 6px 12px; }
-.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: all .15s; }
+.btn-green { background: var(--green-dim); color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text-2); }
 
-/* STATS STRIP */
 .stats { display: flex; gap: 10px; flex-wrap: wrap; }
-.stat-pill {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 14px; border-radius: var(--radius);
-  background: var(--surface); border: 1px solid var(--border);
-  font-size: 13px; font-weight: 500;
-}
-.stat-pill .num { font-weight: 700; font-size: 16px; font-family: 'DM Mono', monospace; }
-.stat-pill .lbl { color: var(--text-2); font-size: 12px; }
+.stat-pill { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
+.stat-pill .num { font-weight: 700; color: var(--green); }
 
-/* ESCALA TABLE */
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.table-inner { overflow-x: auto; }
-.table-inner::-webkit-scrollbar { height: 5px; }
-.table-inner::-webkit-scrollbar-track { background: transparent; }
-.table-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+table.escala { border-collapse: collapse; width: 100%; }
+table.escala thead th { padding: 12px 16px; text-align: center; font-size: 11px; color: var(--text-2); background: var(--surface2); border-bottom: 1px solid var(--border); }
+table.escala thead th .col-date { font-size: 14px; font-weight: 700; color: var(--text); display: block; }
+table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--border2); vertical-align: top; }
 
-table.escala { border-collapse: collapse; width: 100%; min-width: 600px; }
-table.escala thead th {
-  padding: 12px 16px; text-align: left;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-  color: var(--text-2); border-bottom: 1px solid var(--border);
-  background: var(--surface2); white-space: nowrap;
-}
-table.escala thead th.date-col { text-align: center; min-width: 140px; }
-table.escala thead th .col-date { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: 0; display: block; text-transform: none; margin-bottom: 2px; }
-table.escala thead th .col-day { font-size: 10px; color: var(--text-3); }
-table.escala thead th .col-count { font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green); margin-top: 3px; display: block; }
-
-table.escala tbody td {
-  padding: 10px 16px; border-bottom: 1px solid var(--border2);
-  vertical-align: top;
-}
-table.escala tbody tr:last-child td { border-bottom: none; }
-
-.slot-cell { min-height: 44px; display: flex; flex-wrap: wrap; gap: 5px; align-items: flex-start; justify-content: center; padding: 4px 0; }
-.name-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 100px;
+/* Zebra stripes on name rows inside cells */
+.slot-cell { min-height: 60px; display: flex; flex-direction: column; gap: 0; align-items: stretch; }
+.name-row {
+  padding: 6px 10px;
   font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .12s; user-select: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: opacity .12s;
 }
-.name-tag .remove { opacity: 0; font-size: 12px; transition: opacity .12s; }
-.name-tag:hover .remove { opacity: 1; }
-.name-tag:hover { padding-right: 7px; }
+.name-row:hover { opacity: 0.75; }
+.name-row.zebra-even { background: rgba(255,255,255,0.04); }
+.name-row.zebra-odd  { background: rgba(255,255,255,0.09); }
+.name-row .remove { opacity: 0.4; font-size: 13px; }
 
-.empty-slot { color: var(--text-3); font-size: 12px; align-self: center; }
-
-/* DROP ZONE */
-.slot-cell.drag-over { background: var(--green-glow); border-radius: 8px; border: 1px dashed var(--green); }
-
-/* UNAVAILABLE */
 .unavail-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; }
-.unavail-title { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.unavail-title::before { content: ''; display: block; width: 8px; height: 8px; border-radius: 2px; background: var(--red); flex-shrink: 0; }
-.unavail-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.unavail-tag {
-  padding: 4px 10px; border-radius: 100px;
-  background: var(--red-bg); color: var(--red);
-  border: 1px solid rgba(248,81,73,.2);
-  font-size: 12px; font-weight: 500;
+.unavail-list { display: flex; flex-wrap: wrap; align-items: center; gap: 0; margin-top: 10px; }
+.unavail-row {
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2);
+}
+.unavail-sep {
+  color: var(--text-3);
+  font-size: 14px;
+  margin: 0 6px;
+  user-select: none;
 }
 
-/* DOWNLOAD MODAL */
-.dl-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
-  display: none; align-items: center; justify-content: center; z-index: 200;
-}
-.dl-box {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 32px; width: 360px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.6);
-  animation: fadeScale .2s ease;
-}
-@keyframes fadeScale { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.dl-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.dl-box p { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
-.dl-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-.dl-option {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 16px; border-radius: var(--radius);
-  border: 1px solid var(--border); background: var(--bg);
-  cursor: pointer; transition: all .15s;
-}
-.dl-option:hover { border-color: var(--green); background: var(--green-glow); }
-.dl-option-icon { font-size: 24px; flex-shrink: 0; }
-.dl-option-name { font-size: 14px; font-weight: 600; }
-.dl-option-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-.dl-cancel { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--border); color: var(--text-2); border-radius: var(--radius); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; transition: all .15s; }
-.dl-cancel:hover { color: var(--text); border-color: var(--text-2); }
-
-/* LOADING OVERLAY */
-#loading-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
-  display:flex; align-items:center; justify-content:center; z-index:999;
-}
+#loading-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:999; flex-direction: column; gap: 15px; }
 #loading-overlay.hidden { display:none; }
-.loading-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px 40px; text-align:center; }
-.loading-spinner {
-  width:40px; height:40px; border-radius:50%;
-  border:3px solid var(--border); border-top-color:var(--green);
-  animation:spin .8s linear infinite; margin:0 auto 16px;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-.loading-box p { font-size:14px; color:var(--text-2); }
-
-/* PRINT / EXPORT FRAMES */
-#export-web, #export-mobile { display:none; }
-
-/* COLOR PALETTE for avatars/tags */
-.c0  { background:rgba( 88,166,255,.15); color:#58a6ff; }
-.c1  { background:rgba(210,153, 34,.15); color:#d29922; }
-.c2  { background:rgba(248, 81, 73,.15); color:#f85149; }
-.c3  { background:rgba( 63,185, 80,.15); color:#3fb950; }
-.c4  { background:rgba(188,140,255,.15); color:#bc8cff; }
-.c5  { background:rgba(255,130, 80,.15); color:#ff8250; }
-.c6  { background:rgba( 80,215,200,.15); color:#50d7c8; }
-.c7  { background:rgba(255,100,130,.15); color:#ff6482; }
-.c8  { background:rgba(150,210, 70,.15); color:#96d246; }
-.c9  { background:rgba(255,180, 80,.15); color:#ffb450; }
-.c10 { background:rgba(100,150,255,.15); color:#6496ff; }
+.spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<!-- ──────────── LOGIN ──────────── -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      </div>
+      <div class="login-logo-icon">✝</div>
       <div>
         <div class="login-logo-text">Grupo de Evangelismo</div>
-        <div class="login-logo-sub">Área Administrativa</div>
+        <div class="login-logo-sub">Painel Administrativo</div>
       </div>
     </div>
-    <h2>Acesso restrito</h2>
-    <p>Insira suas credenciais para montar a escala</p>
+    <h2>Acesso</h2>
     <div class="field">
       <label>Usuário</label>
-      <input type="text" id="login-user" placeholder="admin" autocomplete="username">
+      <input type="text" id="login-user" value="admin">
     </div>
     <div class="field">
       <label>Senha</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      <input type="password" id="login-pass" placeholder="escala2026">
     </div>
-    <div class="login-err" id="login-err">Usuário ou senha incorretos.</div>
+    <div class="login-err" id="login-err">Credenciais inválidas.</div>
     <button class="btn-login" onclick="doLogin()">Entrar</button>
   </div>
 </div>
 
-<!-- ──────────── APP ──────────── -->
 <div id="app">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <span class="topbar-title">Escala Admin</span>
-    </div>
-    <span class="topbar-badge">Admin</span>
+    <div class="topbar-logo"><span class="topbar-title">Escala Admin</span></div>
+    <span class="topbar-badge">Maio 2026</span>
     <div class="topbar-spacer"></div>
-    <div class="topbar-status"><div class="status-dot"></div><span>Google Sheets conectado</span></div>
-    <button class="btn-logout" onclick="doLogout()">Sair</button>
+    <div class="topbar-status"><div class="status-dot"></div><span>Online</span></div>
+    <button class="btn-logout" onclick="location.reload()">Sair</button>
   </div>
 
-  <!-- LAYOUT -->
   <div class="layout">
-
-    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h3>Membros — <span id="sb-count">0</span> com disponibilidade</h3>
+        <h3>Membros (<span id="sb-count">0</span>)</h3>
         <div class="sidebar-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-input" placeholder="Filtrar membro..." oninput="filterSidebar()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+          <input type="text" id="search-input" placeholder="Filtrar..." oninput="renderSidebar()">
         </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn-clear-sel" onclick="clearSelection()">Limpar seleção</button>
       </div>
       <div class="sidebar-list" id="sidebar-list"></div>
       <div class="person-panel" id="person-panel">
-        <div class="panel-name" id="panel-name">—</div>
+        <div class="panel-name" id="panel-name">---</div>
         <div class="panel-dates" id="panel-dates"></div>
       </div>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
-
-      <!-- TOOLBAR -->
       <div class="toolbar">
-        <div>
-          <div class="toolbar-title">Escala de Maio / 2026</div>
-          <div class="toolbar-sub">Grupo de Evangelismo</div>
-        </div>
+        <div class="toolbar-title">Escala Mensal</div>
         <div class="toolbar-spacer"></div>
-        <button class="btn btn-ghost" onclick="clearAll()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
-          Limpar tudo
-        </button>
-        <button class="btn btn-ghost" onclick="reloadSheet()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
-          Atualizar planilha
-        </button>
-        <button class="btn btn-green" onclick="openDownload()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </button>
+        <button class="btn btn-ghost" onclick="clearAll()">Limpar</button>
+        <button class="btn btn-ghost" onclick="reloadSheet()">Atualizar Dados</button>
+        <button class="btn btn-green" onclick="doDownload()">Exportar PNG</button>
       </div>
 
-      <!-- STATS -->
       <div class="stats" id="stats-strip"></div>
 
-      <!-- TABLE -->
-      <div class="table-wrap">
-        <div class="table-inner">
-          <table class="escala" id="escala-table">
-            <thead id="escala-head"></thead>
-            <tbody id="escala-body"></tbody>
-          </table>
-        </div>
+      <div class="table-wrap" id="capture-area">
+        <table class="escala">
+          <thead id="escala-head"></thead>
+          <tbody id="escala-body"></tbody>
+        </table>
       </div>
 
-      <!-- UNAVAILABLE -->
       <div class="unavail-section">
-        <div class="unavail-title">Indisponível no mês</div>
+        <strong>Indisponíveis no mês:</strong>
         <div class="unavail-list" id="unavail-list"></div>
       </div>
-
-    </div><!-- /main -->
-  </div><!-- /layout -->
-</div><!-- /app -->
-
-<!-- DOWNLOAD MODAL -->
-<div class="dl-overlay" id="dl-overlay">
-  <div class="dl-box">
-    <h3>📥 Exportar Escala</h3>
-    <p>Escolha o formato de exportação</p>
-    <div class="dl-options">
-      <div class="dl-option" onclick="doDownload('web')">
-        <div class="dl-option-icon">🖥️</div>
-        <div>
-          <div class="dl-option-name">Versão Web</div>
-          <div class="dl-option-sub">Layout completo com tabela — PNG</div>
-        </div>
-      </div>
-      <div class="dl-option" onclick="doDownload('mobile')">
-        <div class="dl-option-icon">📱</div>
-        <div>
-          <div class="dl-option-name">Versão Mobile</div>
-          <div class="dl-option-sub">Layout simplificado por data — PNG</div>
-        </div>
-      </div>
     </div>
-    <button class="dl-cancel" onclick="closeDownload()">Cancelar</button>
   </div>
 </div>
 
-<!-- LOADING -->
-<div id="loading-overlay">
-  <div class="loading-box">
-    <div class="loading-spinner"></div>
-    <p id="loading-msg">Carregando dados da planilha…</p>
-  </div>
+<div id="loading-overlay" class="hidden">
+  <div class="spinner"></div>
+  <p id="loading-msg">Carregando...</p>
 </div>
 
-<!-- html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-/* ════════════════════════════════════════════
-   CONFIG
-════════════════════════════════════════════ */
+/* CONFIG */
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQacux9pNeju5fuqrpk51NKfdzp7S_SSMjKi93jp0N8vz9XsxPWoTxtJrnqoWlw7eLyg/exec';
-
 var ADMIN_USER = 'admin';
-var ADMIN_PASS = 'escala2026';   // ← altere aqui
+var ADMIN_PASS = 'aaaa';
 
-// Datas do grupo (conforme área pública)
 var GROUP_DATES = [
-  { key: '06/mai', label: '06/mai', full: '06 de maio', day: 'Quarta' },
-  { key: '09/mai', label: '09/mai', full: '09 de maio', day: 'Sábado' },
-  { key: '20/mai', label: '20/mai', full: '20 de maio', day: 'Quarta' },
-  { key: '24/mai', label: '24/mai', full: '24 de maio', day: 'Domingo' },
-  { key: '30/mai', label: '30/mai', full: '30 de maio', day: 'Sábado' },
+  { key: '06/mai', label: '06/mai', full: '06 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '09/mai', label: '09/mai', full: '09 de maio', day: 'Sábado',  hora: '10h às 11h30' },
+  { key: '20/mai', label: '20/mai', full: '20 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '24/mai', label: '24/mai', full: '24 de maio', day: 'Domingo', hora: '17h às 18h30' },
+  { key: '30/mai', label: '30/mai', full: '30 de maio', day: 'Sábado',  hora: '9h30 às 11h'  },
 ];
 
-// Lista fixa de 31 membros
 var MEMBERS = [
-  'Pr. Marcio','Alex','Alfredo','Bianca','Bianca Madureira',
-  'Celiana','Cris Medeiros','Cristina','Dalila','Elizangela',
-  'Fernanda','Francisca','Jean','João','Léo',
-  'Luciana Fernandes','Luciane Martins','Marcio Santos','Marilda','Marília',
-  'Matheus','Medeiros','Pr. Humberto','Pra. Daniela Soares','Rodolfo',
-  'Rose','Salathiel','Sebastiana','Suellen','Vanessa Rocha','Zema'
+  'ALAN','ALEX','ALFREDO','BIANCA R.','BIANCA M.','CELIANA',
+  'CRIS MEDEIROS','CRISTINA ANJOS','DALILA','ELIZANGELA','FERNANDA',
+  'FRANCISCA','JEAN','JOÃO','LÉO','LUCIANA FERNANDES','LUCIANE MARTINS',
+  'MARCIO SANTOS','MARILDA','MARÍLIA','MATHEUS','MEDEIROS','PR. HUMBERTO',
+  'PR. MARCIO','PRA. DANIELA SOARES','RODOLFO','ROSE','SALATHIEL',
+  'SEBASTIANA','SUELLEN','VANESSA ROCHA','ZEMA'
 ];
 
-/* ════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════ */
-// memberData[name] = { dates: ['06/mai', '09/mai', ...] } or null (unavailable)
 var memberData = {};
-// schedule[date] = [name, name, ...]
 var schedule = {};
-GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+GROUP_DATES.forEach(d => schedule[d.key] = []);
+var selectedPersons = new Set();
 
-var selectedPerson = null;
-
-/* ════════════════════════════════════════════
-   AUTH
-════════════════════════════════════════════ */
+/* AUTH */
 function doLogin() {
-  var u = document.getElementById('login-user').value.trim();
-  var p = document.getElementById('login-pass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
+  const u = document.getElementById('login-user').value;
+  const p = document.getElementById('login-pass').value;
+  if(u === ADMIN_USER && p === ADMIN_PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     loadSheet();
   } else {
-    var el = document.getElementById('login-err');
-    el.style.display = 'block';
-    setTimeout(function(){ el.style.display = 'none'; }, 3000);
+    document.getElementById('login-err').style.display = 'block';
   }
 }
-document.getElementById('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-document.getElementById('login-user').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
-function doLogout() {
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  memberData = {};
-  GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
-  selectedPerson = null;
-}
-
-/* ════════════════════════════════════════════
-   LOAD FROM SHEET
-════════════════════════════════════════════ */
-function norm(s){ return String(s||'').trim().toLowerCase(); }
-function normDate(s){ return String(s||'').trim().replace(/\//,'/').toLowerCase(); }
-
-function reloadSheet(){ loadSheet(); }
-
+/* JSONP LOAD */
 function loadSheet() {
   showLoading('Carregando dados da planilha…');
-  fetch(SCRIPT_URL + '?action=read', { method:'GET', mode:'no-cors' })
-  .then(function(){
-    // no-cors doesn't give us data, so we use a workaround:
-    // Fetch via a JSONP-style GET. Since the script is no-cors we
-    // try a second fetch with a callback trick.
-    return fetchSheetData();
-  })
-  .catch(function(){ useFallback(); });
+  var script = document.createElement('script');
+  var callbackName = 'gsCallback_' + Date.now();
+  window[callbackName] = function(data) {
+    delete window[callbackName];
+    document.body.removeChild(script);
+    processSheetData(data);
+    hideLoading();
+  };
+  script.onerror = function() {
+    delete window[callbackName];
+    if (script.parentNode) document.body.removeChild(script);
+    useFallback();
+  };
+  script.src = SCRIPT_URL + '?action=getAll&callback=' + callbackName;
+  document.body.appendChild(script);
 }
 
-function fetchSheetData() {
-  // Try fetching via fetch API (CORS must be allowed in Apps Script)
-  return fetch(SCRIPT_URL + '?action=getAll')
-    .then(function(r){ return r.json(); })
-    .then(function(data){ processSheetData(data); hideLoading(); })
-    .catch(function(){ useFallback(); });
-}
+function reloadSheet() { loadSheet(); }
 
 function useFallback() {
-  // If the sheet isn't reachable, mark everyone as "not found" (no data)
   MEMBERS.forEach(function(name){ memberData[name] = null; });
   hideLoading();
   renderAll();
-  showToast('⚠️ Não foi possível ler a planilha. Exibindo todos como indisponíveis.', 'amber');
+  alert('⚠️ Não foi possível ler a planilha automaticamente.');
 }
 
+/* PROCESSAMENTO */
 function processSheetData(rows) {
-  // rows = [ [nome, data, status], ... ]
-  // Build a map: normalizedName -> { dates[] }
-  var sheetMap = {};
-  (rows || []).forEach(function(row) {
-    var rName = norm(row[0]);
-    var rDate = normDate(row[1]);
-    var rStatus = norm(row[2]);
-    if (!rName) return;
-    if (!sheetMap[rName]) sheetMap[rName] = [];
-    if (rStatus === 'disponivel' || rStatus === 'disponível') {
-      // find canonical date key
-      var matched = GROUP_DATES.find(function(d){ return normDate(d.key) === rDate || normDate(d.full) === rDate; });
-      if (matched) sheetMap[rName].push(matched.key);
+  let sheetMap = {};
+  (rows || []).forEach(row => {
+    let name = String(row[0] || '').trim().toLowerCase();
+    let date = String(row[1] || '').trim().toLowerCase();
+    let status = String(row[2] || '').trim().toLowerCase();
+    if(!name) return;
+    if(!sheetMap[name]) sheetMap[name] = [];
+    if(status.includes('dispon')) {
+       let match = GROUP_DATES.find(d => date.includes(d.key.split('/')[0]));
+       if(match) sheetMap[name].push(match.key);
     }
   });
-
-  // Match each member
-  MEMBERS.forEach(function(name) {
-    var key = norm(name);
-    // try exact match, then partial
-    var found = sheetMap[key];
-    if (!found) {
-      // try partial
-      Object.keys(sheetMap).forEach(function(k){
-        if (k.includes(key) || key.includes(k)) found = sheetMap[k];
-      });
-    }
-    if (found && found.length > 0) {
-      memberData[name] = { dates: found };
-    } else {
-      memberData[name] = null;
-    }
+  MEMBERS.forEach(m => {
+    let key = m.toLowerCase();
+    memberData[m] = sheetMap[key] ? { dates: sheetMap[key] } : null;
   });
-
   renderAll();
 }
 
-/* ════════════════════════════════════════════
-   RENDER
-════════════════════════════════════════════ */
-var COLORS = ['c0','c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
-function colorFor(name) {
-  var h = 0;
-  for(var i=0;i<name.length;i++) h = (h*31+name.charCodeAt(i))%COLORS.length;
-  return COLORS[h];
-}
-function initials(name) {
-  var parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  // skip titles
-  var skip = ['pr.','pra.','pr','pra'];
-  var filtered = parts.filter(function(p){ return skip.indexOf(p.toLowerCase()) === -1; });
-  if (filtered.length === 0) return parts[0][0].toUpperCase();
-  return (filtered[0][0] + (filtered[1] ? filtered[1][0] : '')).toUpperCase();
-}
-
+/* RENDERERS */
 function renderAll() {
   renderSidebar();
   renderTable();
@@ -649,316 +397,214 @@ function renderAll() {
   renderStats();
 }
 
-/* SIDEBAR */
-var sidebarFilter = '';
-function filterSidebar() {
-  sidebarFilter = document.getElementById('search-input').value.toLowerCase();
-  renderSidebar();
-}
-
 function renderSidebar() {
-  var available = MEMBERS.filter(function(n){ return memberData[n] && memberData[n].dates.length > 0; });
-  document.getElementById('sb-count').textContent = available.length;
-
-  var list = document.getElementById('sidebar-list');
+  const list = document.getElementById('sidebar-list');
+  const filter = document.getElementById('search-input').value.toLowerCase();
   list.innerHTML = '';
-  available.forEach(function(name) {
-    if (sidebarFilter && norm(name).indexOf(sidebarFilter) === -1) return;
-    var dates = memberData[name].dates;
-    var allocated = dates.filter(function(d){ return schedule[d] && schedule[d].indexOf(name) !== -1; });
-    var cl = colorFor(name);
-    var item = document.createElement('div');
-    item.className = 'person-item' + (selectedPerson === name ? ' active' : '');
-    item.innerHTML =
-      '<div class="person-avatar ' + cl + '">' + initials(name) + '</div>' +
-      '<span class="person-name">' + name + '</span>' +
-      '<span class="person-count ' + cl + '">' + allocated.length + '/' + dates.length + '</span>';
-    item.onclick = function(){ selectPerson(name); };
-    list.appendChild(item);
+  let count = 0;
+  MEMBERS.forEach(name => {
+    if(filter && !name.toLowerCase().includes(filter)) return;
+    if(!memberData[name] || memberData[name].dates.length === 0) return;
+    count++;
+    const isAlloc = GROUP_DATES.filter(d => schedule[d.key].includes(name)).length;
+    const totalDisp = memberData[name].dates.length;
+    const isSelected = selectedPersons.has(name);
+    const div = document.createElement('div');
+    div.className = `person-item ${isSelected ? 'active' : ''}`;
+    div.innerHTML = `
+      <div class="person-name">${name}</div>
+      <div class="person-count">${isAlloc}/${totalDisp}</div>
+    `;
+    div.onclick = () => selectPerson(name);
+    list.appendChild(div);
   });
+  document.getElementById('sb-count').textContent = count;
 }
 
 function selectPerson(name) {
-  selectedPerson = name;
+  if(selectedPersons.has(name)) selectedPersons.delete(name);
+  else selectedPersons.add(name);
   renderSidebar();
+  renderPanel();
+}
 
-  var panel = document.getElementById('person-panel');
+function clearSelection() {
+  selectedPersons.clear();
+  renderSidebar();
+  renderPanel();
+}
+
+function renderPanel() {
+  const panel = document.getElementById('person-panel');
+  const datesDiv = document.getElementById('panel-dates');
+  const panelName = document.getElementById('panel-name');
+  if(selectedPersons.size === 0) { panel.classList.remove('open'); return; }
   panel.classList.add('open');
-  document.getElementById('panel-name').textContent = name;
-
-  var data = memberData[name];
-  var datesEl = document.getElementById('panel-dates');
-  datesEl.innerHTML = '';
-
-  if (!data || !data.dates.length) {
-    datesEl.innerHTML = '<div style="font-size:12px;color:var(--text-3);">Sem disponibilidade registrada.</div>';
-    return;
-  }
-
-  data.dates.forEach(function(dk) {
-    var dObj = GROUP_DATES.find(function(d){ return d.key === dk; });
-    if (!dObj) return;
-    var inSched = schedule[dk] && schedule[dk].indexOf(name) !== -1;
-    var btn = document.createElement('div');
-    btn.className = 'panel-date-btn' + (inSched ? ' allocated' : '');
-    btn.innerHTML =
-      '<span>' + dObj.day + ', ' + dObj.full + '</span>' +
-      '<span class="alloc-icon">' + (inSched ? '✓' : '+') + '</span>';
-    btn.onclick = function(){ toggleAlloc(name, dk); };
-    datesEl.appendChild(btn);
+  panelName.textContent = selectedPersons.size === 1
+    ? [...selectedPersons][0]
+    : `${selectedPersons.size} membros selecionados`;
+  const allDates = new Set();
+  selectedPersons.forEach(name => { (memberData[name]?.dates || []).forEach(d => allDates.add(d)); });
+  datesDiv.innerHTML = '';
+  [...allDates].forEach(dk => {
+    const dObj = GROUP_DATES.find(d => d.key === dk);
+    if(!dObj) return;
+    const membersWithDate = [...selectedPersons].filter(n => memberData[n]?.dates.includes(dk));
+    const allAllocated = membersWithDate.every(n => schedule[dk].includes(n));
+    const btn = document.createElement('div');
+    btn.className = `panel-date-btn ${allAllocated ? 'allocated' : ''}`;
+    btn.innerHTML = `<span>${dObj.day}, ${dObj.full} · ${dObj.hora}</span><span>${allAllocated ? '✓' : '+'}</span>`;
+    btn.onclick = () => toggleAllocMulti(dk, allAllocated);
+    datesDiv.appendChild(btn);
   });
 }
 
-/* TABLE */
-function renderTable() {
-  var head = document.getElementById('escala-head');
-  var body = document.getElementById('escala-body');
-
-  // Header
-  var headHtml = '<tr>';
-  GROUP_DATES.forEach(function(d) {
-    var count = schedule[d.key] ? schedule[d.key].length : 0;
-    headHtml += '<th class="date-col">' +
-      '<span class="col-day">' + d.day + '</span>' +
-      '<span class="col-date">' + d.full + '</span>' +
-      '<span class="col-count">' + (count > 0 ? count + ' pessoa' + (count>1?'s':'') : 'Vazio') + '</span>' +
-      '</th>';
+function toggleAllocMulti(dk, shouldRemove) {
+  selectedPersons.forEach(name => {
+    if(!memberData[name]?.dates.includes(dk)) return;
+    const idx = schedule[dk].indexOf(name);
+    if(shouldRemove && idx > -1) schedule[dk].splice(idx, 1);
+    else if(!shouldRemove && idx === -1) schedule[dk].push(name);
   });
-  headHtml += '</tr>';
-  head.innerHTML = headHtml;
+  renderAll(); renderPanel();
+}
 
-  // Body: single row with slots
-  var bodyHtml = '<tr>';
-  GROUP_DATES.forEach(function(d) {
-    bodyHtml += '<td><div class="slot-cell" id="slot-' + d.key.replace('/','_') + '">';
-    var names = schedule[d.key] || [];
+function toggleAlloc(name, dk) {
+  const idx = schedule[dk].indexOf(name);
+  if(idx > -1) schedule[dk].splice(idx, 1);
+  else schedule[dk].push(name);
+  renderAll(); renderPanel();
+}
+
+function renderTable() {
+  const head = document.getElementById('escala-head');
+  const body = document.getElementById('escala-body');
+  head.innerHTML = `<tr>${GROUP_DATES.map(d =>
+    `<th><span class="col-date">${d.full}</span><span class="col-day">${d.day} · ${d.hora}</span></th>`
+  ).join('')}</tr>`;
+  let bodyHtml = '<tr>';
+  GROUP_DATES.forEach(d => {
+    bodyHtml += `<td><div class="slot-cell">`;
+    schedule[d.key].forEach((name, i) => {
+      const zebraClass = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
+      bodyHtml += `<div class="name-row ${zebraClass}" onclick="toggleAlloc('${name}','${d.key}')">${name}<span class="remove">×</span></div>`;
+    });
+    bodyHtml += `</div></td>`;
+  });
+  body.innerHTML = bodyHtml + '</tr>';
+}
+
+function renderUnavail() {
+  const list = document.getElementById('unavail-list');
+  const un = MEMBERS.filter(m => !memberData[m] || memberData[m].dates.length === 0);
+  list.innerHTML = un.map((m, i) =>
+    `<span class="unavail-row">${m}</span>${i < un.length - 1 ? '<span class="unavail-sep">·</span>' : ''}`
+  ).join('');
+}
+
+function renderStats() {
+  const total = GROUP_DATES.reduce((acc, d) => acc + schedule[d.key].length, 0);
+  document.getElementById('stats-strip').innerHTML = `
+    <div class="stat-pill">Total Alocados: <span class="num">${total}</span></div>
+    <div class="stat-pill">Membros com Dados: <span class="num">${MEMBERS.filter(m => memberData[m]).length}</span></div>
+  `;
+}
+
+/* UI UTILS */
+function showLoading(msg) {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-overlay').classList.remove('hidden');
+}
+function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+function clearAll() { if(confirm('Limpar escala?')) { GROUP_DATES.forEach(d => schedule[d.key] = []); renderAll(); } }
+
+function doDownload() {
+  showLoading('Gerando imagem...');
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position: fixed; left: -9999px; top: 0;
+    width: 900px; padding: 48px 52px;
+    background: #f8f9fb;
+    font-family: 'DM Sans', Arial, sans-serif;
+    color: #0f172a;
+  `;
+
+  const dayMap = { 'Quarta': 'QUARTA-FEIRA', 'Sábado': 'SÁBADO', 'Domingo': 'DOMINGO' };
+
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div style="font-size:13px; font-weight:700; letter-spacing:1.5px; color:#6b7a99; text-transform:uppercase;">GRUPO DE EVANGELISMO</div>
+      <div style="font-size:13px; font-weight:600; color:#6b7a99; letter-spacing:1px;">MAIO 2026</div>
+    </div>
+    <div style="height:2px; background:#e2e8f0; margin-bottom:28px;"></div>
+    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+      <thead><tr>
+  `;
+
+  GROUP_DATES.forEach(d => {
+    const dateNum = d.key.replace('/mai', '/05');
+    const dayLabel = dayMap[d.day] || d.day.toUpperCase();
+    html += `
+      <th style="padding:14px 12px; background:#ffffff; border:1px solid #e2e8f0; text-align:center; vertical-align:top;">
+        <div style="font-size:11px; font-weight:700; color:#5b6fa8; letter-spacing:0.8px; margin-bottom:4px;">${dayLabel}</div>
+        <div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:4px;">${dateNum}</div>
+        <div style="font-size:11px; color:#94a3b8;">${d.hora}</div>
+      </th>
+    `;
+  });
+
+  html += `</tr></thead><tbody><tr>`;
+
+  GROUP_DATES.forEach(d => {
+    const names = schedule[d.key] || [];
+    html += `<td style="padding:0; border:1px solid #e2e8f0; vertical-align:top; background:#f8f9fb; text-align:center;">`;
     if (names.length === 0) {
-      bodyHtml += '<span class="empty-slot">Nenhum alocado</span>';
+      html += `<div style="padding:12px; color:#cbd5e1; font-size:14px;">—</div>`;
     } else {
-      names.forEach(function(name) {
-        var cl = colorFor(name);
-        bodyHtml += '<span class="name-tag ' + cl + '" onclick="removeAlloc(\'' + name.replace(/'/g,"\\'") + '\',\'' + d.key + '\')" title="Clique para remover">' +
-          name + ' <span class="remove">✕</span></span>';
+      names.forEach((name, i) => {
+        const bg = i % 2 === 0 ? '#f8f9fb' : '#eef1f6';
+        html += `
+          <div style="
+            padding: 8px 12px;
+            background: ${bg};
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: 0.3px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+          ">${name}</div>
+        `;
       });
     }
-    bodyHtml += '</div></td>';
+    html += `</td>`;
   });
-  bodyHtml += '</tr>';
-  body.innerHTML = bodyHtml;
-}
 
-/* UNAVAILABLE */
-function renderUnavail() {
-  var unavail = MEMBERS.filter(function(n){ return !memberData[n] || !memberData[n].dates.length; });
-  var el = document.getElementById('unavail-list');
-  if (unavail.length === 0) {
-    el.innerHTML = '<span style="font-size:13px;color:var(--text-3);">Todos com disponibilidade registrada 🎉</span>';
-    return;
-  }
-  el.innerHTML = unavail.map(function(n){
-    return '<span class="unavail-tag">' + n + '</span>';
-  }).join('');
-}
+  html += `</tr></tbody></table>`;
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
 
-/* STATS */
-function renderStats() {
-  var available = MEMBERS.filter(function(n){ return memberData[n] && memberData[n].dates.length; }).length;
-  var unavailable = MEMBERS.length - available;
-  var totalAlloc = 0;
-  GROUP_DATES.forEach(function(d){ totalAlloc += (schedule[d.key]||[]).length; });
-
-  document.getElementById('stats-strip').innerHTML =
-    '<div class="stat-pill"><span class="num" style="color:var(--blue)">' + MEMBERS.length + '</span><span class="lbl">membros</span></div>' +
-    '<div class="stat-pill"><span class="num" style="color:var(--green)">' + available + '</span><span class="lbl">disponíveis</span></div>' +
-    '<div class="stat-pill"><span class="num" style="color:var(--red)">' + unavailable + '</span><span class="lbl">indisponíveis</span></div>' +
-    '<div class="stat-pill"><span class="num" style="color:var(--amber)">' + totalAlloc + '</span><span class="lbl">alocações</span></div>' +
-    '<div class="stat-pill"><span class="num">' + GROUP_DATES.length + '</span><span class="lbl">datas</span></div>';
-}
-
-/* ════════════════════════════════════════════
-   ALLOCATION
-════════════════════════════════════════════ */
-function toggleAlloc(name, dateKey) {
-  if (!schedule[dateKey]) schedule[dateKey] = [];
-  var idx = schedule[dateKey].indexOf(name);
-  if (idx === -1) {
-    schedule[dateKey].push(name);
-  } else {
-    schedule[dateKey].splice(idx, 1);
-  }
-  renderTable();
-  renderStats();
-  // Re-render panel so button states update
-  if (selectedPerson === name) selectPerson(name);
-  renderSidebar();
-}
-
-function removeAlloc(name, dateKey) {
-  if (!schedule[dateKey]) return;
-  var idx = schedule[dateKey].indexOf(name);
-  if (idx !== -1) schedule[dateKey].splice(idx, 1);
-  renderTable();
-  renderStats();
-  if (selectedPerson === name) selectPerson(name);
-  renderSidebar();
-}
-
-function clearAll() {
-  if (!confirm('Limpar todas as alocações da escala?')) return;
-  GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
-  renderAll();
-}
-
-/* ════════════════════════════════════════════
-   DOWNLOAD
-════════════════════════════════════════════ */
-function openDownload() { document.getElementById('dl-overlay').style.display = 'flex'; }
-function closeDownload() { document.getElementById('dl-overlay').style.display = 'none'; }
-
-function doDownload(mode) {
-  closeDownload();
-  showLoading('Gerando imagem…');
-
-  var el = mode === 'web' ? buildWebExport() : buildMobileExport();
-  document.body.appendChild(el);
-
-  setTimeout(function() {
-    html2canvas(el, {
-      backgroundColor: '#0d1117',
+  setTimeout(() => {
+    html2canvas(wrap, {
+      backgroundColor: '#f8f9fb',
       scale: 2,
       useCORS: true,
       logging: false
-    }).then(function(canvas) {
-      document.body.removeChild(el);
+    }).then(canvas => {
+      document.body.removeChild(wrap);
       hideLoading();
-      var link = document.createElement('a');
-      link.download = 'escala-maio-2026-' + mode + '.png';
+      const link = document.createElement('a');
+      link.download = 'escala-evangelismo-maio-2026.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-    }).catch(function() {
-      document.body.removeChild(el);
+    }).catch(() => {
+      document.body.removeChild(wrap);
       hideLoading();
-      showToast('Erro ao gerar imagem.', 'red');
+      alert('Erro ao gerar imagem.');
     });
-  }, 100);
+  }, 150);
 }
-
-function buildWebExport() {
-  var wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;padding:32px;background:#0d1117;font-family:DM Sans,Arial,sans-serif;color:#e6edf3;';
-
-  var header = '<div style="margin-bottom:24px;">' +
-    '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#3fb950;font-weight:700;margin-bottom:6px;">Grupo de Evangelismo</div>' +
-    '<div style="font-size:26px;font-weight:800;margin-bottom:4px;">Escala de Maio / 2026</div>' +
-    '<div style="font-size:13px;color:#8b949e;">Gerado em ' + new Date().toLocaleDateString('pt-BR') + '</div>' +
-    '</div>';
-
-  var table = '<table style="width:100%;border-collapse:collapse;background:#161b22;border-radius:12px;overflow:hidden;">';
-  table += '<thead><tr>';
-  GROUP_DATES.forEach(function(d) {
-    var count = (schedule[d.key]||[]).length;
-    table += '<th style="padding:14px 16px;text-align:center;background:#1c2331;border-bottom:1px solid #30363d;font-size:12px;color:#8b949e;">' +
-      '<div style="font-size:11px;color:#484f58;margin-bottom:3px;">' + d.day + '</div>' +
-      '<div style="font-size:15px;font-weight:700;color:#e6edf3;">' + d.full + '</div>' +
-      '<div style="font-size:10px;color:#3fb950;margin-top:4px;font-weight:700;">' + (count > 0 ? count + ' pessoa'+(count>1?'s':'') : 'Vazio') + '</div>' +
-      '</th>';
-  });
-  table += '</tr></thead><tbody><tr>';
-
-  GROUP_DATES.forEach(function(d) {
-    var names = schedule[d.key] || [];
-    table += '<td style="padding:12px;vertical-align:top;border:none;text-align:center;">';
-    if (names.length === 0) {
-      table += '<span style="font-size:12px;color:#484f58;">—</span>';
-    } else {
-      names.forEach(function(name) {
-        table += '<div style="display:inline-block;margin:3px;padding:5px 12px;border-radius:100px;background:rgba(63,185,80,.15);color:#3fb950;font-size:12px;font-weight:600;">' + name + '</div>';
-      });
-    }
-    table += '</td>';
-  });
-  table += '</tr></tbody></table>';
-
-  // unavail
-  var unavail = MEMBERS.filter(function(n){ return !memberData[n] || !memberData[n].dates.length; });
-  var unavailHtml = '';
-  if (unavail.length > 0) {
-    unavailHtml = '<div style="margin-top:20px;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px 20px;">' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#8b949e;margin-bottom:10px;">Indisponível no mês</div>' +
-      '<div>' + unavail.map(function(n){ return '<span style="display:inline-block;margin:3px;padding:4px 10px;border-radius:100px;background:rgba(248,81,73,.1);color:#f85149;font-size:12px;font-weight:500;">' + n + '</span>'; }).join('') + '</div>' +
-      '</div>';
-  }
-
-  wrap.innerHTML = header + table + unavailHtml;
-  return wrap;
-}
-
-function buildMobileExport() {
-  var wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:390px;padding:24px;background:#0d1117;font-family:DM Sans,Arial,sans-serif;color:#e6edf3;';
-
-  var html = '<div style="margin-bottom:20px;">' +
-    '<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#3fb950;font-weight:700;margin-bottom:4px;">Grupo de Evangelismo</div>' +
-    '<div style="font-size:20px;font-weight:800;">Escala Maio / 2026</div>' +
-    '</div>';
-
-  GROUP_DATES.forEach(function(d) {
-    var names = schedule[d.key] || [];
-    html += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;margin-bottom:10px;">' +
-      '<div style="font-size:10px;color:#8b949e;margin-bottom:4px;">' + d.day + '</div>' +
-      '<div style="font-size:16px;font-weight:700;margin-bottom:10px;">' + d.full + '</div>';
-    if (names.length === 0) {
-      html += '<div style="font-size:12px;color:#484f58;">Ninguém alocado</div>';
-    } else {
-      html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">' +
-        names.map(function(n){ return '<span style="padding:4px 10px;border-radius:100px;background:rgba(63,185,80,.15);color:#3fb950;font-size:12px;font-weight:600;">' + n + '</span>'; }).join('') +
-        '</div>';
-    }
-    html += '</div>';
-  });
-
-  var unavail = MEMBERS.filter(function(n){ return !memberData[n] || !memberData[n].dates.length; });
-  if (unavail.length > 0) {
-    html += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;margin-top:4px;">' +
-      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#8b949e;margin-bottom:8px;">Indisponíveis</div>' +
-      '<div style="font-size:13px;color:#f85149;line-height:1.7;">' + unavail.join(', ') + '</div>' +
-      '</div>';
-  }
-
-  wrap.innerHTML = html;
-  return wrap;
-}
-
-/* ════════════════════════════════════════════
-   HELPERS
-════════════════════════════════════════════ */
-function showLoading(msg) {
-  document.getElementById('loading-msg').textContent = msg || 'Aguarde…';
-  document.getElementById('loading-overlay').classList.remove('hidden');
-}
-function hideLoading() {
-  document.getElementById('loading-overlay').classList.add('hidden');
-}
-
-var toastTimer;
-function showToast(msg, color) {
-  clearTimeout(toastTimer);
-  var existing = document.getElementById('toast');
-  if (existing) document.body.removeChild(existing);
-  var t = document.createElement('div');
-  t.id = 'toast';
-  var bg = color === 'amber' ? '#d29922' : color === 'red' ? '#f85149' : '#3fb950';
-  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:' + bg + ';color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.4);';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  toastTimer = setTimeout(function(){ if(t.parentNode) document.body.removeChild(t); }, 4000);
-}
-
-/* ════════════════════════════════════════════
-   INIT — pre-mark everyone as not found until sheet loads
-════════════════════════════════════════════ */
-// This runs before login, just sets up state
-MEMBERS.forEach(function(name){ memberData[name] = null; });
 </script>
+
 </body>
 </html>
