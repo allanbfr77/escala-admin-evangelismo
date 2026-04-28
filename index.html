@@ -481,6 +481,7 @@ function loadSchedule() {
       GROUP_DATES.forEach(function(d) {
         if (Array.isArray(parsed[d.key])) schedule[d.key] = parsed[d.key];
       });
+      dedupeScheduleEntries();
     }
   } catch(e) {}
 }
@@ -549,6 +550,21 @@ function formatDateForCode(raw) {
   return null;
 }
 
+/* Remove nomes repetidos por data (chave nome normalizada em maiúsculas). */
+function dedupeScheduleEntries() {
+  GROUP_DATES.forEach(function(d) {
+    var arr = schedule[d.key];
+    if (!Array.isArray(arr)) { schedule[d.key] = []; return; }
+    var seen = {};
+    schedule[d.key] = arr.filter(function(name) {
+      var k = String(name).trim().toUpperCase();
+      if (!k || seen[k]) return false;
+      seen[k] = true;
+      return true;
+    });
+  });
+}
+
 /* Carrega a escala salva na aba "Escala" do Google Sheets.
    Roda em paralelo com loadSheet(); sobrescreve o cache do localStorage
    quando o servidor responde com sucesso. */
@@ -563,6 +579,7 @@ function loadScheduleFromSheet() {
         var key = formatDateForCode(rawKey);
         if (key && Array.isArray(sched[rawKey])) schedule[key] = sched[rawKey];
       });
+      dedupeScheduleEntries();
       saveSchedule();
       renderAll();
     })
@@ -575,6 +592,7 @@ function loadScheduleFromSheet() {
 function syncToSheet() {
   setSaveStatus('saving');
   if (!window.fetch) { setSaveStatus('error'); return; }
+  dedupeScheduleEntries();
   var url = SCRIPT_URL
     + '?action=setSchedule'
     + '&sched=' + encodeURIComponent(JSON.stringify(schedule))
@@ -860,6 +878,7 @@ function toggleAlloc(name, dk) {
   var idx = schedule[dk].indexOf(name);
   if (idx > -1) schedule[dk].splice(idx, 1);
   else schedule[dk].push(name);
+  dedupeScheduleEntries();
   saveSchedule();
   renderAll();
   renderPanel();
@@ -993,11 +1012,11 @@ function doDownload() {
     + '<div style="height:2px;background:#e2e8f0;margin-bottom:28px;"></div>'
     + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><thead><tr>';
   GROUP_DATES.forEach(function(d) {
-    var dateNum  = d.key.replace('/mai', '/05');
-    var dayLabel = dayMap[d.day] || d.day.toUpperCase();
+    var dayLabel  = dayMap[d.day] || d.day.toUpperCase();
+    var dateLabel = d.full;
     html += '<th style="padding:14px 12px;background:#fff;border:1px solid #e2e8f0;text-align:center;vertical-align:top;">'
       + '<div style="font-size:11px;font-weight:700;color:#5b6fa8;letter-spacing:.8px;margin-bottom:4px;">' + dayLabel + '</div>'
-      + '<div style="font-size:16px;font-weight:800;color:#0f172a;margin-bottom:4px;">' + dateNum + '</div>'
+      + '<div style="font-size:16px;font-weight:800;color:#0f172a;margin-bottom:4px;">' + dateLabel + '</div>'
       + '<div style="font-size:11px;color:#94a3b8;">' + d.hora + '</div></th>';
   });
   html += '</tr></thead><tbody><tr>';
