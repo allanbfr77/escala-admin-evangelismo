@@ -18,11 +18,7 @@
   --green-dim:#238636;
   --green-glow: rgba(63,185,80,.18);
   --amber:    #d29922;
-  --amber-bg: rgba(210,153,34,.12);
   --red:      #f85149;
-  --red-bg:   rgba(248,81,73,.1);
-  --blue:     #58a6ff;
-  --blue-bg:  rgba(88,166,255,.1);
   --text:     #e6edf3;
   --text-2:   #8b949e;
   --text-3:   #484f58;
@@ -41,14 +37,10 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .login-card {
   width: 100%; max-width: 380px; padding: 40px 36px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: 0 24px 64px rgba(0,0,0,.5);
 }
-.login-logo {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
-}
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
 .login-logo-icon {
   width: 40px; height: 40px; border-radius: 10px;
   background: linear-gradient(135deg, var(--green-dim), var(--green));
@@ -56,26 +48,32 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   box-shadow: 0 0 20px var(--green-glow);
 }
 .login-logo-text { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
-.login-logo-sub { font-size: 12px; color: var(--text-2); font-weight: 400; }
-.login-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.login-card p { font-size: 14px; color: var(--text-2); margin-bottom: 28px; }
+.login-logo-sub  { font-size: 12px; color: var(--text-2); font-weight: 400; }
+.login-card h2   { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
 .field { margin-bottom: 16px; }
 .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; letter-spacing: 0.4px; text-transform: uppercase; }
+.field-input-wrap { position: relative; }
 .field input {
-  width: 100%; padding: 10px 14px;
+  width: 100%; padding: 10px 40px 10px 14px;
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text);
   font-family: 'DM Mono', monospace; font-size: 14px;
   outline: none; transition: border-color .15s, box-shadow .15s;
 }
 .field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-glow); }
+.eye-btn {
+  position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--text-3);
+  padding: 2px; display: flex; align-items: center; transition: color .15s;
+}
+.eye-btn:hover { color: var(--text-2); }
 .login-err { font-size: 13px; color: var(--red); margin-bottom: 12px; display: none; }
 .btn-login {
   width: 100%; padding: 11px; margin-top: 4px;
   background: var(--green-dim); color: #fff;
   border: none; border-radius: var(--radius);
   font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: background .15s, box-shadow .15s;
+  cursor: pointer; transition: background .15s;
   box-shadow: 0 0 16px var(--green-glow);
 }
 .btn-login:hover { background: var(--green); }
@@ -87,12 +85,6 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 24px; gap: 16px;
   position: sticky; top: 0; z-index: 100;
-}
-.topbar-logo { display: flex; align-items: center; gap: 9px; }
-.topbar-logo-icon {
-  width: 30px; height: 30px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--green-dim), var(--green));
-  display: flex; align-items: center; justify-content: center;
 }
 .topbar-title { font-size: 14px; font-weight: 700; }
 .topbar-badge {
@@ -107,13 +99,13 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .btn-logout {
   padding: 6px 12px; font-size: 12px; font-weight: 600;
   background: transparent; border: 1px solid var(--border);
-  color: var(--text-2); border-radius: 6px; cursor: pointer;
-  transition: all .15s;
+  color: var(--text-2); border-radius: 6px; cursor: pointer; transition: all .15s;
 }
 .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
 .layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
 
+/* ── SIDEBAR ── */
 .sidebar {
   width: 280px; min-width: 280px;
   background: var(--surface); border-right: 1px solid var(--border);
@@ -137,7 +129,6 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   transition: all .15s; text-align: center;
 }
 .btn-clear-sel:hover { border-color: var(--amber); color: var(--amber); }
-
 .sidebar-list { flex: 1; overflow-y: auto; padding: 8px; }
 .person-item {
   display: flex; align-items: center; gap: 10px;
@@ -148,7 +139,6 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .person-item.active { background: var(--green-glow); }
 .person-name { font-size: 13px; font-weight: 500; flex: 1; }
 .person-count { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
-
 .person-panel { border-top: 1px solid var(--border); padding: 14px; display: none; }
 .person-panel.open { display: block; }
 .panel-name { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
@@ -161,31 +151,27 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .panel-date-btn.allocated { background: var(--green-glow); border-color: var(--green); color: var(--green); }
 
+/* ── MAIN ── */
 .main { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .toolbar-title { font-size: 18px; font-weight: 700; }
 .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: all .15s; }
 .btn-green { background: var(--green-dim); color: #fff; }
 .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text-2); }
-
 .stats { display: flex; gap: 10px; flex-wrap: wrap; }
 .stat-pill { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
 .stat-pill .num { font-weight: 700; color: var(--green); }
 
+/* ── DASHBOARD TABLE ── */
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
 table.escala { border-collapse: collapse; width: 100%; }
 table.escala thead th { padding: 12px 16px; text-align: center; font-size: 11px; color: var(--text-2); background: var(--surface2); border-bottom: 1px solid var(--border); }
 table.escala thead th .col-date { font-size: 14px; font-weight: 700; color: var(--text); display: block; }
 table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--border2); vertical-align: top; }
-
-/* Zebra stripes on name rows inside cells */
 .slot-cell { min-height: 60px; display: flex; flex-direction: column; gap: 0; align-items: stretch; }
 .name-row {
-  padding: 6px 10px;
-  font-size: 12px; font-weight: 600;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; font-size: 12px; font-weight: 600; color: #ffffff;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
   transition: opacity .12s;
 }
 .name-row:hover { opacity: 0.75; }
@@ -193,64 +179,75 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 .name-row.zebra-odd  { background: rgba(255,255,255,0.09); }
 .name-row .remove { opacity: 0.4; font-size: 13px; }
 
-.unavail-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; }
-.unavail-list { display: flex; flex-wrap: wrap; align-items: center; gap: 0; margin-top: 10px; }
-.unavail-row {
-  font-size: 13px; font-weight: 500;
-  color: var(--text-2);
+/* ── AVAILABILITY SECTION ── */
+.avail-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
 }
-.unavail-sep {
-  color: var(--text-3);
-  font-size: 14px;
-  margin: 0 6px;
-  user-select: none;
+.avail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent; transition: border-color .2s;
 }
+.avail-header.open { border-bottom-color: var(--border2); }
+.avail-header-left { display: flex; align-items: center; gap: 8px; }
+.avail-header strong { font-size: 13px; font-weight: 700; }
+.avail-eye { color: var(--text-3); display: flex; align-items: center; transition: color .15s; }
+.avail-header:hover .avail-eye { color: var(--text-2); }
+.avail-body { display: none; padding: 14px 16px 16px; }
+.avail-body.open { display: block; }
+.avail-blocks { display: flex; gap: 10px; flex-wrap: wrap; }
+.avail-block { flex: 1; min-width: 0; }
+.avail-table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+.avail-table th {
+  padding: 4px 5px; text-align: center;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text-2); font-weight: 700; font-size: 10px; letter-spacing: 0.3px;
+}
+.avail-table th.th-name { text-align: left; min-width: 80px; }
+.avail-table td { padding: 4px 5px; border: 1px solid var(--border2); text-align: center; vertical-align: middle; }
+.avail-table td.td-name {
+  text-align: left; font-size: 10.5px; font-weight: 600;
+  color: var(--text); white-space: nowrap; padding-left: 6px;
+}
+.avail-table td.td-name.no-data { color: var(--text-3); font-weight: 400; }
+.avail-table tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
+.avail-table tr:nth-child(odd)  td { background: rgba(255,255,255,0.06); }
+.avail-check { color: var(--green); font-size: 11px; font-weight: 700; }
 
-#loading-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:999; flex-direction: column; gap: 15px; }
+/* ── LOADING ── */
+#loading-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:999; flex-direction:column; gap:15px; }
 #loading-overlay.hidden { display:none; }
-.spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
 
-/* ── MOBILE SIDEBAR TOGGLE ── */
+/* ── MOBILE ── */
 .btn-sidebar-toggle {
-  display: none;
-  background: transparent; border: 1px solid var(--border);
-  color: var(--text-2); border-radius: 6px;
-  padding: 6px 10px; cursor: pointer; font-size: 18px; line-height: 1;
+  display: none; background: transparent; border: 1px solid var(--border);
+  color: var(--text-2); border-radius: 6px; padding: 6px 10px;
+  cursor: pointer; font-size: 18px; line-height: 1;
 }
-
-/* ── SIDEBAR OVERLAY BACKDROP (mobile) ── */
-.sidebar-backdrop {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.6); z-index: 49;
-}
+.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 49; }
 .sidebar-backdrop.open { display: block; }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .login-card { padding: 32px 20px; margin: 16px; }
-
   .topbar { padding: 0 14px; gap: 10px; }
   .topbar-status { display: none; }
   .btn-sidebar-toggle { display: flex; align-items: center; justify-content: center; }
-
   .layout { position: relative; overflow: hidden; }
-
   .sidebar {
     position: fixed; top: 56px; left: 0; bottom: 0;
     width: 280px; z-index: 50;
-    transform: translateX(-100%);
-    transition: transform .25s ease;
+    transform: translateX(-100%); transition: transform .25s ease;
   }
   .sidebar.open { transform: translateX(0); }
-
   .main { padding: 14px; gap: 14px; }
-
   .toolbar { gap: 8px; }
   .toolbar-title { font-size: 15px; flex: 1; }
   .btn { padding: 7px 11px; font-size: 12px; }
 
-  /* Table → vertical cards on mobile */
+  /* Dashboard → vertical cards */
   .table-wrap { background: transparent; border: none; border-radius: 0; overflow: visible; }
   table.escala, table.escala thead, table.escala tbody,
   table.escala tr, table.escala th, table.escala td { display: block; width: 100%; }
@@ -269,11 +266,12 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   }
   .slot-cell { min-height: 40px; }
   .name-row { font-size: 13px; padding: 8px 14px; }
-
   .stat-pill { font-size: 12px; padding: 6px 10px; }
 
-  .unavail-section { padding: 12px 14px; }
-  .unavail-row { font-size: 12px; }
+  /* Avail blocks stack */
+  .avail-blocks { flex-direction: column; gap: 14px; }
+  .avail-table { font-size: 11px; }
+  .avail-table td.td-name { font-size: 11px; }
 }
 </style>
 </head>
@@ -291,11 +289,21 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
     <h2>Acesso</h2>
     <div class="field">
       <label>Usuário</label>
-      <input type="text" id="login-user" value="admin">
+      <div class="field-input-wrap">
+        <input type="text" id="login-user" value="admin">
+      </div>
     </div>
     <div class="field">
       <label>Senha</label>
-      <input type="password" id="login-pass" placeholder="escala2026">
+      <div class="field-input-wrap">
+        <input type="password" id="login-pass" placeholder="••••••••">
+        <button class="eye-btn" type="button" onclick="togglePass()" id="eye-btn" aria-label="Mostrar senha">
+          <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="login-err" id="login-err">Credenciais inválidas.</div>
     <button class="btn-login" onclick="doLogin()">Entrar</button>
@@ -305,7 +313,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 <div id="app">
   <div class="topbar">
     <button class="btn-sidebar-toggle" onclick="toggleSidebar()">☰</button>
-    <div class="topbar-logo"><span class="topbar-title">Escala Admin</span></div>
+    <span class="topbar-title">Escala Admin</span>
     <span class="topbar-badge">Maio 2026</span>
     <div class="topbar-spacer"></div>
     <div class="topbar-status"><div class="status-dot"></div><span>Online</span></div>
@@ -350,9 +358,23 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
         </table>
       </div>
 
-      <div class="unavail-section">
-        <strong>Indisponíveis no mês:</strong>
-        <div class="unavail-list" id="unavail-list"></div>
+      <div class="avail-section">
+        <div class="avail-header" id="avail-header" onclick="toggleAvail()">
+          <div class="avail-header-left">
+            <strong>Disponibilidades dos Membros</strong>
+          </div>
+          <span class="avail-eye" id="avail-eye">
+            <!-- eye-closed (default: section closed) -->
+            <svg id="avail-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </span>
+        </div>
+        <div class="avail-body" id="avail-body">
+          <div class="avail-blocks" id="avail-blocks"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -364,19 +386,17 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
-/* CONFIG */
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQacux9pNeju5fuqrpk51NKfdzp7S_SSMjKi93jp0N8vz9XsxPWoTxtJrnqoWlw7eLyg/exec';
 var ADMIN_USER = 'admin';
 var ADMIN_PASS = 'aaaa';
 
 var GROUP_DATES = [
-  { key: '06/mai', label: '06/mai', full: '06 de maio', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '09/mai', label: '09/mai', full: '09 de maio', day: 'Sábado',  hora: '10h às 11h30' },
-  { key: '20/mai', label: '20/mai', full: '20 de maio', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '24/mai', label: '24/mai', full: '24 de maio', day: 'Domingo', hora: '17h às 18h30' },
-  { key: '30/mai', label: '30/mai', full: '30 de maio', day: 'Sábado',  hora: '9h30 às 11h'  },
+  { key: '06/mai', full: '06 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '09/mai', full: '09 de maio', day: 'Sábado',  hora: '10h às 11h30' },
+  { key: '20/mai', full: '20 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '24/mai', full: '24 de maio', day: 'Domingo', hora: '17h às 18h30' },
+  { key: '30/mai', full: '30 de maio', day: 'Sábado',  hora: '9h30 às 11h'  },
 ];
 
 var MEMBERS = [
@@ -390,14 +410,14 @@ var MEMBERS = [
 
 var memberData = {};
 var schedule = {};
-GROUP_DATES.forEach(d => schedule[d.key] = []);
-var selectedPersons = new Set();
+GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+var selectedPerson = null; // single selection only
 
-/* AUTH */
+/* ── AUTH ── */
 function doLogin() {
-  const u = document.getElementById('login-user').value;
-  const p = document.getElementById('login-pass').value;
-  if(u === ADMIN_USER && p === ADMIN_PASS) {
+  var u = document.getElementById('login-user').value;
+  var p = document.getElementById('login-pass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     loadSheet();
@@ -406,182 +426,222 @@ function doLogin() {
   }
 }
 
-/* JSONP LOAD */
+function togglePass() {
+  var inp = document.getElementById('login-pass');
+  var icon = document.getElementById('eye-icon');
+  var show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  icon.innerHTML = show
+    ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+}
+
+/* ── LOAD ── */
 function loadSheet() {
   showLoading('Carregando dados da planilha…');
   var script = document.createElement('script');
-  var callbackName = 'gsCallback_' + Date.now();
-  window[callbackName] = function(data) {
-    delete window[callbackName];
-    document.body.removeChild(script);
+  var cbName = 'gsCallback_' + Date.now();
+
+  var tid = setTimeout(function() {
+    if (window[cbName]) {
+      delete window[cbName];
+      if (script.parentNode) document.body.removeChild(script);
+      useFallback();
+    }
+  }, 10000);
+
+  window[cbName] = function(data) {
+    clearTimeout(tid);
+    delete window[cbName];
+    if (script.parentNode) document.body.removeChild(script);
     processSheetData(data);
     hideLoading();
   };
+
   script.onerror = function() {
-    delete window[callbackName];
+    clearTimeout(tid);
+    delete window[cbName];
     if (script.parentNode) document.body.removeChild(script);
     useFallback();
   };
-  script.src = SCRIPT_URL + '?action=getAll&callback=' + callbackName;
+
+  script.src = SCRIPT_URL + '?action=getAll&callback=' + cbName + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
 function reloadSheet() { loadSheet(); }
 
 function useFallback() {
-  MEMBERS.forEach(function(name){ memberData[name] = null; });
+  MEMBERS.forEach(function(n){ memberData[n] = null; });
   hideLoading();
   renderAll();
-  alert('⚠️ Não foi possível ler a planilha automaticamente.');
 }
 
-/* PROCESSAMENTO */
 function processSheetData(rows) {
-  let sheetMap = {};
-  (rows || []).forEach(row => {
-    let name = String(row[0] || '').trim().toLowerCase();
-    let date = String(row[1] || '').trim().toLowerCase();
-    let status = String(row[2] || '').trim().toLowerCase();
-    if(!name) return;
-    if(!sheetMap[name]) sheetMap[name] = [];
-    if(status.includes('dispon')) {
-       let match = GROUP_DATES.find(d => date.includes(d.key.split('/')[0]));
-       if(match) sheetMap[name].push(match.key);
+  var map = {};
+  (rows || []).forEach(function(row) {
+    var name   = String(row[0]||'').trim().toLowerCase();
+    var date   = String(row[1]||'').trim().toLowerCase();
+    var status = String(row[2]||'').trim().toLowerCase();
+    if (!name) return;
+    if (!map[name]) map[name] = [];
+    if (status.includes('dispon')) {
+      var match = GROUP_DATES.find(function(d){ return date.includes(d.key.split('/')[0]); });
+      if (match) map[name].push(match.key);
     }
   });
-  MEMBERS.forEach(m => {
-    let key = m.toLowerCase();
-    memberData[m] = sheetMap[key] ? { dates: sheetMap[key] } : null;
+  MEMBERS.forEach(function(m) {
+    var k = m.toLowerCase();
+    memberData[m] = map[k] ? { dates: map[k] } : null;
   });
   renderAll();
 }
 
-/* RENDERERS */
+/* ── RENDER ALL ── */
 function renderAll() {
   renderSidebar();
   renderTable();
-  renderUnavail();
   renderStats();
+  renderAvailGrid();
 }
 
+/* ── SIDEBAR (single select) ── */
 function renderSidebar() {
-  const list = document.getElementById('sidebar-list');
-  const filter = document.getElementById('search-input').value.toLowerCase();
+  var list   = document.getElementById('sidebar-list');
+  var filter = document.getElementById('search-input').value.toLowerCase();
   list.innerHTML = '';
-  let count = 0;
-  MEMBERS.forEach(name => {
-    if(filter && !name.toLowerCase().includes(filter)) return;
-    if(!memberData[name] || memberData[name].dates.length === 0) return;
+  var count = 0;
+  MEMBERS.forEach(function(name) {
+    if (filter && !name.toLowerCase().includes(filter)) return;
+    if (!memberData[name] || memberData[name].dates.length === 0) return;
     count++;
-    const isAlloc = GROUP_DATES.filter(d => schedule[d.key].includes(name)).length;
-    const totalDisp = memberData[name].dates.length;
-    const isSelected = selectedPersons.has(name);
-    const div = document.createElement('div');
-    div.className = `person-item ${isSelected ? 'active' : ''}`;
-    div.innerHTML = `
-      <div class="person-name">${name}</div>
-      <div class="person-count">${isAlloc}/${totalDisp}</div>
-    `;
-    div.onclick = () => selectPerson(name);
+    var isAlloc = GROUP_DATES.filter(function(d){ return schedule[d.key].includes(name); }).length;
+    var total   = memberData[name].dates.length;
+    var active  = selectedPerson === name;
+    var div = document.createElement('div');
+    div.className = 'person-item' + (active ? ' active' : '');
+    div.innerHTML = '<div class="person-name">' + name + '</div><div class="person-count">' + isAlloc + '/' + total + '</div>';
+    div.onclick = function(){ selectPerson(name); };
     list.appendChild(div);
   });
   document.getElementById('sb-count').textContent = count;
 }
 
 function selectPerson(name) {
-  if(selectedPersons.has(name)) selectedPersons.delete(name);
-  else selectedPersons.add(name);
+  selectedPerson = selectedPerson === name ? null : name;
   renderSidebar();
   renderPanel();
 }
 
 function clearSelection() {
-  selectedPersons.clear();
+  selectedPerson = null;
   renderSidebar();
   renderPanel();
 }
 
 function renderPanel() {
-  const panel = document.getElementById('person-panel');
-  const datesDiv = document.getElementById('panel-dates');
-  const panelName = document.getElementById('panel-name');
-  if(selectedPersons.size === 0) { panel.classList.remove('open'); return; }
+  var panel = document.getElementById('person-panel');
+  var datesDiv = document.getElementById('panel-dates');
+  var panelName = document.getElementById('panel-name');
+  if (!selectedPerson) { panel.classList.remove('open'); return; }
   panel.classList.add('open');
-  panelName.textContent = selectedPersons.size === 1
-    ? [...selectedPersons][0]
-    : `${selectedPersons.size} membros selecionados`;
-  const allDates = new Set();
-  selectedPersons.forEach(name => { (memberData[name]?.dates || []).forEach(d => allDates.add(d)); });
+  panelName.textContent = selectedPerson;
+  var dates = (memberData[selectedPerson] && memberData[selectedPerson].dates) || [];
   datesDiv.innerHTML = '';
-  [...allDates].forEach(dk => {
-    const dObj = GROUP_DATES.find(d => d.key === dk);
-    if(!dObj) return;
-    const membersWithDate = [...selectedPersons].filter(n => memberData[n]?.dates.includes(dk));
-    const allAllocated = membersWithDate.every(n => schedule[dk].includes(n));
-    const btn = document.createElement('div');
-    btn.className = `panel-date-btn ${allAllocated ? 'allocated' : ''}`;
-    btn.innerHTML = `<span>${dObj.day}, ${dObj.full} · ${dObj.hora}</span><span>${allAllocated ? '✓' : '+'}</span>`;
-    btn.onclick = () => toggleAllocMulti(dk, allAllocated);
+  dates.forEach(function(dk) {
+    var dObj = GROUP_DATES.find(function(d){ return d.key === dk; });
+    if (!dObj) return;
+    var allocated = schedule[dk].includes(selectedPerson);
+    var btn = document.createElement('div');
+    btn.className = 'panel-date-btn' + (allocated ? ' allocated' : '');
+    btn.innerHTML = '<span>' + dObj.day + ', ' + dObj.full + ' · ' + dObj.hora + '</span><span>' + (allocated ? '✓' : '+') + '</span>';
+    btn.onclick = function(){ toggleAlloc(selectedPerson, dk); };
     datesDiv.appendChild(btn);
   });
 }
 
-function toggleAllocMulti(dk, shouldRemove) {
-  selectedPersons.forEach(name => {
-    if(!memberData[name]?.dates.includes(dk)) return;
-    const idx = schedule[dk].indexOf(name);
-    if(shouldRemove && idx > -1) schedule[dk].splice(idx, 1);
-    else if(!shouldRemove && idx === -1) schedule[dk].push(name);
+/* ── TABLE ── */
+function renderTable() {
+  var head = document.getElementById('escala-head');
+  var body = document.getElementById('escala-body');
+  head.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
+    return '<th><span class="col-date">' + d.full + '</span><span class="col-day">' + d.day + ' · ' + d.hora + '</span></th>';
+  }).join('') + '</tr>';
+  var html = '<tr>';
+  GROUP_DATES.forEach(function(d) {
+    html += '<td data-label="' + d.day + ' · ' + d.full + ' · ' + d.hora + '"><div class="slot-cell">';
+    schedule[d.key].forEach(function(name, i) {
+      var z = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
+      html += '<div class="name-row ' + z + '" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">' + name + '<span class="remove">×</span></div>';
+    });
+    html += '</div></td>';
   });
-  renderAll(); renderPanel();
+  body.innerHTML = html + '</tr>';
 }
 
 function toggleAlloc(name, dk) {
-  const idx = schedule[dk].indexOf(name);
-  if(idx > -1) schedule[dk].splice(idx, 1);
+  var idx = schedule[dk].indexOf(name);
+  if (idx > -1) schedule[dk].splice(idx, 1);
   else schedule[dk].push(name);
-  renderAll(); renderPanel();
+  renderAll();
+  renderPanel();
 }
 
-function renderTable() {
-  const head = document.getElementById('escala-head');
-  const body = document.getElementById('escala-body');
-  head.innerHTML = `<tr>${GROUP_DATES.map(d =>
-    `<th><span class="col-date">${d.full}</span><span class="col-day">${d.day} · ${d.hora}</span></th>`
-  ).join('')}</tr>`;
-  let bodyHtml = '<tr>';
-  GROUP_DATES.forEach(d => {
-    bodyHtml += `<td data-label="${d.day} · ${d.full} · ${d.hora}"><div class="slot-cell">`;
-    schedule[d.key].forEach((name, i) => {
-      const zebraClass = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
-      bodyHtml += `<div class="name-row ${zebraClass}" onclick="toggleAlloc('${name}','${d.key}')">${name}<span class="remove">×</span></div>`;
+/* ── AVAIL GRID ── */
+var availOpen = false;
+
+function toggleAvail() {
+  availOpen = !availOpen;
+  var header = document.getElementById('avail-header');
+  var body   = document.getElementById('avail-body');
+  var icon   = document.getElementById('avail-eye-icon');
+  header.classList.toggle('open', availOpen);
+  body.classList.toggle('open', availOpen);
+  // eye-open SVG when section is open
+  icon.innerHTML = availOpen
+    ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+}
+
+function renderAvailGrid() {
+  var container = document.getElementById('avail-blocks');
+  if (!container) return;
+  var dayNums = GROUP_DATES.map(function(d){ return d.key.split('/')[0]; });
+  var chunks = [];
+  for (var i = 0; i < MEMBERS.length; i += 11) chunks.push(MEMBERS.slice(i, i + 11));
+  var html = '';
+  chunks.forEach(function(chunk) {
+    html += '<div class="avail-block"><table class="avail-table"><thead><tr><th class="th-name">Nome</th>';
+    dayNums.forEach(function(n){ html += '<th>' + n + '</th>'; });
+    html += '</tr></thead><tbody>';
+    chunk.forEach(function(name) {
+      var data    = memberData[name];
+      var hasData = data && data.dates && data.dates.length > 0;
+      html += '<tr><td class="td-name' + (hasData ? '' : ' no-data') + '">' + name + '</td>';
+      GROUP_DATES.forEach(function(d) {
+        var avail = hasData && data.dates.includes(d.key);
+        html += '<td>' + (avail ? '<span class="avail-check">✓</span>' : '') + '</td>';
+      });
+      html += '</tr>';
     });
-    bodyHtml += `</div></td>`;
+    html += '</tbody></table></div>';
   });
-  body.innerHTML = bodyHtml + '</tr>';
+  container.innerHTML = html;
 }
 
-function renderUnavail() {
-  const list = document.getElementById('unavail-list');
-  const un = MEMBERS.filter(m => !memberData[m] || memberData[m].dates.length === 0);
-  list.innerHTML = un.map((m, i) =>
-    `<span class="unavail-row">${m}</span>${i < un.length - 1 ? '<span class="unavail-sep">·</span>' : ''}`
-  ).join('');
-}
-
+/* ── STATS ── */
 function renderStats() {
-  const total = GROUP_DATES.reduce((acc, d) => acc + schedule[d.key].length, 0);
-  document.getElementById('stats-strip').innerHTML = `
-    <div class="stat-pill">Total Alocados: <span class="num">${total}</span></div>
-    <div class="stat-pill">Membros com Dados: <span class="num">${MEMBERS.filter(m => memberData[m]).length}</span></div>
-  `;
+  var total = GROUP_DATES.reduce(function(a, d){ return a + schedule[d.key].length; }, 0);
+  document.getElementById('stats-strip').innerHTML =
+    '<div class="stat-pill">Total Alocados: <span class="num">' + total + '</span></div>' +
+    '<div class="stat-pill">Membros com Dados: <span class="num">' + MEMBERS.filter(function(m){ return memberData[m]; }).length + '</span></div>';
 }
 
-/* SIDEBAR MOBILE */
+/* ── MOBILE SIDEBAR ── */
 function toggleSidebar() {
-  const sb = document.getElementById('sidebar');
-  const bd = document.getElementById('sidebar-backdrop');
-  const open = sb.classList.toggle('open');
+  var sb = document.getElementById('sidebar');
+  var bd = document.getElementById('sidebar-backdrop');
+  var open = sb.classList.toggle('open');
   bd.classList.toggle('open', open);
 }
 function closeSidebar() {
@@ -589,101 +649,71 @@ function closeSidebar() {
   document.getElementById('sidebar-backdrop').classList.remove('open');
 }
 
-/* UI UTILS */
+/* ── UTILS ── */
 function showLoading(msg) {
   document.getElementById('loading-msg').textContent = msg;
   document.getElementById('loading-overlay').classList.remove('hidden');
 }
 function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
-function clearAll() { if(confirm('Limpar escala?')) { GROUP_DATES.forEach(d => schedule[d.key] = []); renderAll(); } }
+function clearAll() {
+  if (confirm('Limpar escala?')) {
+    GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+    renderAll();
+  }
+}
 
+/* ── EXPORT PNG ── */
 function doDownload() {
   showLoading('Gerando imagem...');
-  const wrap = document.createElement('div');
-  wrap.style.cssText = `
-    position: fixed; left: -9999px; top: 0;
-    width: 900px; padding: 48px 52px;
-    background: #f8f9fb;
-    font-family: 'DM Sans', Arial, sans-serif;
-    color: #0f172a;
-  `;
-
-  const dayMap = { 'Quarta': 'QUARTA-FEIRA', 'Sábado': 'SÁBADO', 'Domingo': 'DOMINGO' };
-
-  let html = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <div style="font-size:13px; font-weight:700; letter-spacing:1.5px; color:#6b7a99; text-transform:uppercase;">GRUPO DE EVANGELISMO</div>
-      <div style="font-size:13px; font-weight:600; color:#6b7a99; letter-spacing:1px;">MAIO 2026</div>
-    </div>
-    <div style="height:2px; background:#e2e8f0; margin-bottom:28px;"></div>
-    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
-      <thead><tr>
-  `;
-
-  GROUP_DATES.forEach(d => {
-    const dateNum = d.key.replace('/mai', '/05');
-    const dayLabel = dayMap[d.day] || d.day.toUpperCase();
-    html += `
-      <th style="padding:14px 12px; background:#ffffff; border:1px solid #e2e8f0; text-align:center; vertical-align:top;">
-        <div style="font-size:11px; font-weight:700; color:#5b6fa8; letter-spacing:0.8px; margin-bottom:4px;">${dayLabel}</div>
-        <div style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:4px;">${dateNum}</div>
-        <div style="font-size:11px; color:#94a3b8;">${d.hora}</div>
-      </th>
-    `;
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;padding:48px 52px;background:#f8f9fb;font-family:DM Sans,Arial,sans-serif;color:#0f172a;';
+  var dayMap = { 'Quarta': 'QUARTA-FEIRA', 'Sábado': 'SÁBADO', 'Domingo': 'DOMINGO' };
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+    + '<div style="font-size:13px;font-weight:700;letter-spacing:1.5px;color:#6b7a99;text-transform:uppercase;">GRUPO DE EVANGELISMO</div>'
+    + '<div style="font-size:13px;font-weight:600;color:#6b7a99;letter-spacing:1px;">MAIO 2026</div></div>'
+    + '<div style="height:2px;background:#e2e8f0;margin-bottom:28px;"></div>'
+    + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><thead><tr>';
+  GROUP_DATES.forEach(function(d) {
+    var dateNum  = d.key.replace('/mai', '/05');
+    var dayLabel = dayMap[d.day] || d.day.toUpperCase();
+    html += '<th style="padding:14px 12px;background:#fff;border:1px solid #e2e8f0;text-align:center;vertical-align:top;">'
+      + '<div style="font-size:11px;font-weight:700;color:#5b6fa8;letter-spacing:.8px;margin-bottom:4px;">' + dayLabel + '</div>'
+      + '<div style="font-size:16px;font-weight:800;color:#0f172a;margin-bottom:4px;">' + dateNum + '</div>'
+      + '<div style="font-size:11px;color:#94a3b8;">' + d.hora + '</div></th>';
   });
-
-  html += `</tr></thead><tbody><tr>`;
-
-  GROUP_DATES.forEach(d => {
-    const names = schedule[d.key] || [];
-    html += `<td style="padding:0; border:1px solid #e2e8f0; vertical-align:top; background:#f8f9fb; text-align:center;">`;
-    if (names.length === 0) {
-      html += `<div style="padding:12px; color:#cbd5e1; font-size:14px;">—</div>`;
+  html += '</tr></thead><tbody><tr>';
+  GROUP_DATES.forEach(function(d) {
+    var names = schedule[d.key] || [];
+    html += '<td style="padding:0;border:1px solid #e2e8f0;vertical-align:top;background:#f8f9fb;text-align:center;">';
+    if (!names.length) {
+      html += '<div style="padding:12px;color:#cbd5e1;font-size:14px;">—</div>';
     } else {
-      names.forEach((name, i) => {
-        const bg = i % 2 === 0 ? '#f8f9fb' : '#eef1f6';
-        html += `
-          <div style="
-            padding: 8px 12px;
-            background: ${bg};
-            font-size: 12px;
-            font-weight: 700;
-            color: #0f172a;
-            letter-spacing: 0.3px;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-          ">${name}</div>
-        `;
+      names.forEach(function(name, i) {
+        var bg = i % 2 === 0 ? '#f8f9fb' : '#eef1f6';
+        html += '<div style="padding:8px 12px;background:' + bg + ';font-size:12px;font-weight:700;color:#0f172a;text-align:center;border-bottom:1px solid #e2e8f0;">' + name + '</div>';
       });
     }
-    html += `</td>`;
+    html += '</td>';
   });
-
-  html += `</tr></tbody></table>`;
+  html += '</tr></tbody></table>';
   wrap.innerHTML = html;
   document.body.appendChild(wrap);
-
-  setTimeout(() => {
-    html2canvas(wrap, {
-      backgroundColor: '#f8f9fb',
-      scale: 2,
-      useCORS: true,
-      logging: false
-    }).then(canvas => {
-      document.body.removeChild(wrap);
-      hideLoading();
-      const link = document.createElement('a');
-      link.download = 'escala-evangelismo-maio-2026.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }).catch(() => {
-      document.body.removeChild(wrap);
-      hideLoading();
-      alert('Erro ao gerar imagem.');
-    });
+  setTimeout(function() {
+    html2canvas(wrap, { backgroundColor: '#f8f9fb', scale: 2, useCORS: true, logging: false })
+      .then(function(canvas) {
+        document.body.removeChild(wrap);
+        hideLoading();
+        var link = document.createElement('a');
+        link.download = 'escala-evangelismo-maio-2026.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }).catch(function() {
+        document.body.removeChild(wrap);
+        hideLoading();
+        alert('Erro ao gerar imagem.');
+      });
   }, 150);
 }
 </script>
-
 </body>
 </html>
