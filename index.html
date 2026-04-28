@@ -94,6 +94,7 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .topbar-spacer { flex: 1; }
 .topbar-status { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.save-status { font-size: 11px; font-weight: 600; letter-spacing: 0.2px; min-width: 90px; text-align: right; transition: color .3s; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 .btn-logout {
@@ -152,7 +153,10 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .panel-date-btn.allocated { background: var(--green-glow); border-color: var(--green); color: var(--green); }
 
 /* ── MAIN ── */
-.main { flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.main-header { flex-shrink: 0; padding: 24px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+.main-content { flex: 1; overflow: auto; padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 20px; }
+.main-content > * { flex-shrink: 0; }
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .toolbar-title { font-size: 18px; font-weight: 700; }
 .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px; transition: all .15s; }
@@ -171,13 +175,17 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 .slot-cell { min-height: 60px; display: flex; flex-direction: column; gap: 0; align-items: stretch; }
 .name-row {
   padding: 6px 10px; font-size: 12px; font-weight: 600; color: #ffffff;
-  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-  transition: opacity .12s;
+  cursor: default; display: flex; align-items: center; justify-content: space-between;
 }
-.name-row:hover { opacity: 0.75; }
 .name-row.zebra-even { background: rgba(255,255,255,0.04); }
 .name-row.zebra-odd  { background: rgba(255,255,255,0.09); }
-.name-row .remove { opacity: 0.4; font-size: 13px; }
+.name-row .remove {
+  opacity: 0.35; font-size: 15px; cursor: pointer;
+  padding: 2px 6px; border-radius: 4px;
+  transition: opacity .12s, color .12s, background .12s;
+  line-height: 1;
+}
+.name-row .remove:hover { opacity: 1; color: var(--red); background: rgba(248,81,73,.12); }
 
 /* ── AVAILABILITY SECTION ── */
 .avail-section {
@@ -211,14 +219,14 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   color: var(--text); white-space: nowrap; padding-left: 6px;
 }
 .avail-table td.td-name.no-data { color: var(--text-3); font-weight: 400; }
-/* ── NOVO: nome verde quando escalado em ao menos uma data ── */
-.avail-table td.td-name.scheduled {
-  color: var(--green);
-  font-weight: 700;
-}
+.avail-table td.td-name.scheduled   { color: var(--green); font-weight: 700; }
+.avail-table td.td-name.unavailable { color: var(--red);   font-weight: 600; }
 .avail-table tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
 .avail-table tr:nth-child(odd)  td { background: rgba(255,255,255,0.06); }
 .avail-check { color: var(--green); font-size: 11px; font-weight: 700; }
+
+/* ── MOBILE TABS ── */
+.mobile-tabs { display: none; }
 
 /* ── LOADING ── */
 #loading-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:999; flex-direction:column; gap:15px; }
@@ -247,7 +255,8 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
     transform: translateX(-100%); transition: transform .25s ease;
   }
   .sidebar.open { transform: translateX(0); }
-  .main { padding: 14px; gap: 14px; }
+  .main-header { padding: 12px 14px 0; gap: 10px; }
+  .main-content { padding: 10px 14px 14px; gap: 14px; }
   .toolbar { gap: 8px; }
   .toolbar-title { font-size: 15px; flex: 1; }
   .btn { padding: 7px 11px; font-size: 12px; }
@@ -277,6 +286,32 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   .avail-blocks { flex-direction: column; gap: 14px; }
   .avail-table { font-size: 11px; }
   .avail-table td.td-name { font-size: 11px; }
+
+  /* Mobile tabs */
+  .mobile-tabs {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  }
+  .mobile-tab {
+    flex: 1; padding: 11px 12px; background: transparent; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--text-2); cursor: pointer; transition: background .15s, color .15s;
+    letter-spacing: 0.2px;
+  }
+  .mobile-tab.active {
+    background: var(--green-glow); color: var(--green);
+    box-shadow: inset 0 -2px 0 var(--green);
+  }
+
+  /* Section visibility by active tab */
+  .main:not(.show-avail) .main-content .avail-section { display: none; }
+  .main.show-avail .main-content #stats-strip,
+  .main.show-avail .main-content .table-wrap { display: none; }
+
+  /* Remove touch on name-row — bigger tap zone for × */
+  .name-row .remove { padding: 4px 10px; font-size: 16px; }
 }
 </style>
 </head>
@@ -322,6 +357,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
     <span class="topbar-badge">Maio 2026</span>
     <div class="topbar-spacer"></div>
     <div class="topbar-status"><div class="status-dot"></div><span>Online</span></div>
+    <span class="save-status" id="save-status"></span>
     <button class="btn-logout" onclick="doLogout()">Sair</button>
   </div>
 
@@ -346,24 +382,32 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
     </div>
 
     <div class="main">
-      <div class="toolbar">
-        <div class="toolbar-title">Escala Mensal</div>
-        <div class="toolbar-spacer"></div>
-        <button class="btn btn-ghost" onclick="clearAll()">Limpar</button>
-        <button class="btn btn-ghost" onclick="reloadSheet()">Atualizar Dados</button>
-        <button class="btn btn-green" onclick="doDownload()">Exportar PNG</button>
+      <div class="main-header">
+        <div class="toolbar">
+          <div class="toolbar-title">Escala Mensal</div>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-ghost" onclick="clearAll()">Limpar</button>
+          <button class="btn btn-ghost" onclick="reloadSheet()">Atualizar Dados</button>
+          <button class="btn btn-green" onclick="doDownload()">Exportar PNG</button>
+        </div>
+
+        <div class="mobile-tabs" id="mobile-tabs">
+          <button class="mobile-tab active" id="tab-escala" onclick="switchTab('escala')">Escala</button>
+          <button class="mobile-tab" id="tab-avail" onclick="switchTab('avail')">Disponibilidades</button>
+        </div>
       </div>
 
-      <div class="stats" id="stats-strip"></div>
+      <div class="main-content">
+        <div class="stats" id="stats-strip"></div>
 
-      <div class="table-wrap" id="capture-area">
-        <table class="escala">
-          <thead id="escala-head"></thead>
-          <tbody id="escala-body"></tbody>
-        </table>
-      </div>
+        <div class="table-wrap" id="capture-area">
+          <table class="escala">
+            <thead id="escala-head"></thead>
+            <tbody id="escala-body"></tbody>
+          </table>
+        </div>
 
-      <div class="avail-section">
+        <div class="avail-section">
         <div class="avail-header" id="avail-header" onclick="toggleAvail()">
           <div class="avail-header-left">
             <strong>Disponibilidades dos Membros</strong>
@@ -379,10 +423,11 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
         <div class="avail-body" id="avail-body">
           <div class="avail-blocks" id="avail-blocks"></div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
+        </div><!-- /avail-section -->
+      </div><!-- /main-content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
 
 <div id="loading-overlay" class="hidden">
   <div class="spinner"></div>
@@ -395,12 +440,14 @@ var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQacux9pNeju5fuqrpk51
 var ADMIN_USER = 'admin';
 var ADMIN_PASS = 'aaaa';
 
+/* key  → ISO 8601 (único identificador interno, enviado à API e ao localStorage)
+   label → string de exibição PT-BR (interface visual, cabeçalhos, painel) */
 var GROUP_DATES = [
-  { key: '06/mai', full: '06 de maio', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '09/mai', full: '09 de maio', day: 'Sábado',  hora: '10h às 11h30' },
-  { key: '20/mai', full: '20 de maio', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '24/mai', full: '24 de maio', day: 'Domingo', hora: '17h às 18h30' },
-  { key: '30/mai', full: '30 de maio', day: 'Sábado',  hora: '9h30 às 11h'  },
+  { key: '2026-05-06', label: '06/mai', full: '06 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-05-09', label: '09/mai', full: '09 de maio', day: 'Sábado',  hora: '10h às 11h30' },
+  { key: '2026-05-20', label: '20/mai', full: '20 de maio', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-05-24', label: '24/mai', full: '24 de maio', day: 'Domingo', hora: '17h às 18h30' },
+  { key: '2026-05-30', label: '30/mai', full: '30 de maio', day: 'Sábado',  hora: '9h30 às 11h'  },
 ];
 
 var MEMBERS = [
@@ -417,9 +464,10 @@ var schedule = {};
 GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
 var selectedPerson = null;
 
-/* ── PERSISTÊNCIA ── */
-var STORAGE_KEY = 'escala_evangelismo_maio2026';
-var SESSION_KEY = 'escala_session_maio2026';
+/* ── PERSISTÊNCIA LOCAL (cache / fallback) ── */
+var STORAGE_KEY     = 'escala_evangelismo_maio2026_v2'; // v2 = chaves ISO 8601
+var SESSION_KEY     = 'escala_session_maio2026';
+var SHEET_CACHE_KEY = 'escala_sheet_cache_maio2026';
 
 function saveSchedule() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(schedule)); } catch(e) {}
@@ -437,15 +485,132 @@ function loadSchedule() {
   } catch(e) {}
 }
 
+/* ── SAVE STATUS ── */
+var _saveTimer = null;
+function setSaveStatus(state) {
+  var el = document.getElementById('save-status');
+  if (!el) return;
+  clearTimeout(_saveTimer);
+  if (state === 'saving') {
+    el.textContent = '● Salvando…';
+    el.style.color = 'var(--amber)';
+  } else if (state === 'ok') {
+    el.textContent = '✓ Salvo';
+    el.style.color = 'var(--green)';
+    _saveTimer = setTimeout(function() { el.textContent = ''; }, 2500);
+  } else if (state === 'error') {
+    el.textContent = '⚠ Erro ao salvar';
+    el.style.color = 'var(--red)';
+    _saveTimer = setTimeout(function() { el.textContent = ''; }, 5000);
+  }
+}
+
+/* ── SINCRONIZAÇÃO COM A PLANILHA ── */
+
+/* Camada de sanitização: converte QUALQUER representação de data recebida
+   (ISO, "06/mai", string longa do Sheets com fuso, Date serializado) para
+   o formato interno ISO 8601 "YYYY-MM-DD". Retorna null se não reconhecer. */
+function formatDateForCode(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim();
+
+  // 1) Já está em ISO "YYYY-MM-DD"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return GROUP_DATES.some(function(g){ return g.key === s; }) ? s : null;
+  }
+
+  // 2) Formato legado "06/mai" ou "09/Mai"
+  var mLeg = s.match(/^(\d{1,2})\/mai$/i);
+  if (mLeg) {
+    var dd = parseInt(mLeg[1], 10);
+    var hit = null;
+    GROUP_DATES.forEach(function(g) {
+      if (parseInt(g.key.split('-')[2], 10) === dd) hit = g.key;
+    });
+    return hit;
+  }
+
+  // 3) String no formato "Sat May 09 2026 ..." gerada pelo Google Sheets
+  //    — extrai mês/dia/ano via regex para evitar falha em browsers com
+  //    caracteres não-ASCII no nome do fuso (ex: "Horário Padrão de Brasília")
+  var MON = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,
+              sep:9,oct:10,nov:11,dec:12 };
+  var mStr = s.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{4})\b/i);
+  if (mStr) {
+    var mo = MON[mStr[1].toLowerCase()];
+    var dy = parseInt(mStr[2], 10);
+    var yr = parseInt(mStr[3], 10);
+    if (mo && dy && yr) {
+      var iso = yr + '-' + (mo < 10 ? '0'+mo : mo) + '-' + (dy < 10 ? '0'+dy : dy);
+      return GROUP_DATES.some(function(g){ return g.key === iso; }) ? iso : null;
+    }
+  }
+
+  return null;
+}
+
+/* Carrega a escala salva na aba "Escala" do Google Sheets.
+   Roda em paralelo com loadSheet(); sobrescreve o cache do localStorage
+   quando o servidor responde com sucesso. */
+function loadScheduleFromSheet() {
+  if (!window.fetch) return;
+  fetch(SCRIPT_URL + '?action=getSchedule&t=' + Date.now(), { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(sched) {
+      if (!sched || sched.error || typeof sched !== 'object') return;
+      GROUP_DATES.forEach(function(d) { schedule[d.key] = []; });
+      Object.keys(sched).forEach(function(rawKey) {
+        var key = formatDateForCode(rawKey);
+        if (key && Array.isArray(sched[rawKey])) schedule[key] = sched[rawKey];
+      });
+      saveSchedule();
+      renderAll();
+    })
+    .catch(function() { /* mantém dados do localStorage */ });
+}
+
+/* Persiste o estado completo da escala via setSchedule.
+   Substitui addPerson/removePerson individuais — evita problema de
+   comparação de formato de data no servidor. */
+function syncToSheet() {
+  setSaveStatus('saving');
+  if (!window.fetch) { setSaveStatus('error'); return; }
+  var url = SCRIPT_URL
+    + '?action=setSchedule'
+    + '&sched=' + encodeURIComponent(JSON.stringify(schedule))
+    + '&t='     + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(r) { setSaveStatus(r && r.error ? 'error' : 'ok'); })
+    .catch(function() { setSaveStatus('error'); });
+}
+
 function saveSession()  { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e) {} }
 function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {} }
 function hasSession()   { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch(e) { return false; } }
 
+function saveSheetCache(rows) {
+  try { localStorage.setItem(SHEET_CACHE_KEY, JSON.stringify(rows || [])); } catch (e) {}
+}
+
+function loadSheetCache() {
+  try {
+    var saved = localStorage.getItem(SHEET_CACHE_KEY);
+    if (!saved) return null;
+    var parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  loadSchedule();
-  loadSheet();
+  loadSchedule();           // renderização imediata via cache local
+  loadSheet();              // carrega disponibilidades do servidor
+  loadScheduleFromSheet();  // sobrescreve escala com dados do servidor
+  if (window.innerWidth <= 768) switchTab('escala');
 }
 
 function doLogout() {
@@ -481,6 +646,46 @@ function togglePass() {
 /* ── LOAD ── */
 function loadSheet() {
   showLoading('Carregando dados da planilha…');
+  loadSheetViaFetch()
+    .then(function(rows) {
+      processSheetData(rows);
+      saveSheetCache(rows);
+      hideLoading();
+    })
+    .catch(function() {
+      loadSheetViaJsonp();
+    });
+}
+
+function loadSheetViaFetch() {
+  return new Promise(function(resolve, reject) {
+    if (!window.fetch) {
+      reject(new Error('fetch indisponivel'));
+      return;
+    }
+    var timeoutId = setTimeout(function() {
+      reject(new Error('timeout'));
+    }, 10000);
+    fetch(SCRIPT_URL + '?action=getAll&t=' + Date.now(), {
+      method: 'GET',
+      cache: 'no-store'
+    })
+      .then(function(res) {
+        if (!res.ok) throw new Error('http_' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        clearTimeout(timeoutId);
+        resolve(Array.isArray(data) ? data : []);
+      })
+      .catch(function(err) {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+  });
+}
+
+function loadSheetViaJsonp() {
   var script = document.createElement('script');
   var cbName = 'gsCallback_' + Date.now();
 
@@ -497,6 +702,7 @@ function loadSheet() {
     delete window[cbName];
     if (script.parentNode) document.body.removeChild(script);
     processSheetData(data);
+    saveSheetCache(data);
     hideLoading();
   };
 
@@ -511,30 +717,49 @@ function loadSheet() {
   document.body.appendChild(script);
 }
 
-function reloadSheet() { loadSheet(); }
+function reloadSheet() {
+  loadSheet();
+  loadScheduleFromSheet();
+}
 
 function useFallback() {
+  var cachedRows = loadSheetCache();
+  if (cachedRows) {
+    processSheetData(cachedRows);
+    hideLoading();
+    return;
+  }
   MEMBERS.forEach(function(n){ memberData[n] = null; });
   hideLoading();
   renderAll();
 }
 
 function processSheetData(rows) {
-  var map = {};
+  var map         = {};
+  var unavailable = {};
   (rows || []).forEach(function(row) {
     var name   = String(row[0]||'').trim().toLowerCase();
-    var date   = String(row[1]||'').trim().toLowerCase();
+    var date   = String(row[1]||'').trim();
     var status = String(row[2]||'').trim().toLowerCase();
     if (!name) return;
+    if (date === 'INDISPONIVEL_TOTAL') {
+      unavailable[name] = true;
+      if (!map[name]) map[name] = [];
+      return;
+    }
     if (!map[name]) map[name] = [];
     if (status.includes('dispon')) {
-      var match = GROUP_DATES.find(function(d){ return date.includes(d.key.split('/')[0]); });
-      if (match) map[name].push(match.key);
+      var isoKey = formatDateForCode(date);
+      if (isoKey) map[name].push(isoKey);
     }
   });
   MEMBERS.forEach(function(m) {
     var k = m.toLowerCase();
-    memberData[m] = map[k] ? { dates: map[k] } : null;
+    if (map[k] !== undefined) {
+      memberData[m] = { dates: map[k], totallyUnavailable: unavailable[k] || false };
+    } else {
+      memberData[m] = null;
+    }
   });
   renderAll();
 }
@@ -595,7 +820,10 @@ function renderPanel() {
   if (!selectedPerson) { panel.classList.remove('open'); return; }
   panel.classList.add('open');
   panelName.textContent = selectedPerson;
-  var dates = (memberData[selectedPerson] && memberData[selectedPerson].dates) || [];
+  var dateOrder = GROUP_DATES.map(function(d){ return d.key; });
+  var dates = ((memberData[selectedPerson] && memberData[selectedPerson].dates) || [])
+    .slice()
+    .sort(function(a, b){ return dateOrder.indexOf(a) - dateOrder.indexOf(b); });
   datesDiv.innerHTML = '';
   dates.forEach(function(dk) {
     var dObj = GROUP_DATES.find(function(d){ return d.key === dk; });
@@ -621,7 +849,7 @@ function renderTable() {
     html += '<td data-label="' + d.day + ' · ' + d.full + ' · ' + d.hora + '"><div class="slot-cell">';
     schedule[d.key].forEach(function(name, i) {
       var z = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
-      html += '<div class="name-row ' + z + '" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">' + name + '<span class="remove">×</span></div>';
+      html += '<div class="name-row ' + z + '">' + name + '<span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></div>';
     });
     html += '</div></td>';
   });
@@ -635,6 +863,7 @@ function toggleAlloc(name, dk) {
   saveSchedule();
   renderAll();
   renderPanel();
+  syncToSheet();
 }
 
 /* ── AVAIL GRID ── */
@@ -655,7 +884,7 @@ function toggleAvail() {
 function renderAvailGrid() {
   var container = document.getElementById('avail-blocks');
   if (!container) return;
-  var dayNums = GROUP_DATES.map(function(d){ return d.key.split('/')[0]; });
+  var dayNums = GROUP_DATES.map(function(d){ return d.label.split('/')[0]; });
   var chunks = [];
   for (var i = 0; i < MEMBERS.length; i += 11) chunks.push(MEMBERS.slice(i, i + 11));
   var html = '';
@@ -666,12 +895,12 @@ function renderAvailGrid() {
     chunk.forEach(function(name) {
       var data    = memberData[name];
       var hasData = data && data.dates && data.dates.length > 0;
-      // Verifica se o membro está escalado em ao menos uma data
-      var scheduled = isScheduled(name);
-      // Monta as classes do td do nome
+      var scheduled         = isScheduled(name);
+      var totallyUnavailable = data && data.totallyUnavailable;
       var nameClass = 'td-name';
-      if (scheduled) nameClass += ' scheduled';
-      else if (!hasData) nameClass += ' no-data';
+      if      (scheduled)          nameClass += ' scheduled';
+      else if (totallyUnavailable) nameClass += ' unavailable';
+      else if (!data)              nameClass += ' no-data';
       html += '<tr><td class="' + nameClass + '">' + name + '</td>';
       GROUP_DATES.forEach(function(d) {
         var avail = hasData && data.dates.includes(d.key);
@@ -690,6 +919,39 @@ function renderStats() {
   document.getElementById('stats-strip').innerHTML =
     '<div class="stat-pill">Total Alocados: <span class="num">' + total + '</span></div>' +
     '<div class="stat-pill">Membros com Dados: <span class="num">' + MEMBERS.filter(function(m){ return memberData[m]; }).length + '</span></div>';
+}
+
+/* ── MOBILE TABS ── */
+function switchTab(tab) {
+  var main      = document.querySelector('.main');
+  var tabEscala = document.getElementById('tab-escala');
+  var tabAvail  = document.getElementById('tab-avail');
+  var statsEl   = document.getElementById('stats-strip');
+  var tableEl   = document.getElementById('capture-area');
+  var availEl   = document.querySelector('.avail-section');
+
+  if (tab === 'avail') {
+    main.classList.add('show-avail');
+    tabEscala.classList.remove('active');
+    tabAvail.classList.add('active');
+    statsEl.style.display  = 'none';
+    tableEl.style.display  = 'none';
+    availEl.style.display  = 'block';
+    if (!availOpen) {
+      availOpen = true;
+      document.getElementById('avail-header').classList.add('open');
+      document.getElementById('avail-body').classList.add('open');
+      document.getElementById('avail-eye-icon').innerHTML =
+        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  } else {
+    main.classList.remove('show-avail');
+    tabEscala.classList.add('active');
+    tabAvail.classList.remove('active');
+    statsEl.style.display  = '';
+    tableEl.style.display  = '';
+    availEl.style.display  = 'none';
+  }
 }
 
 /* ── MOBILE SIDEBAR ── */
@@ -715,6 +977,7 @@ function clearAll() {
     GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
     saveSchedule();
     renderAll();
+    syncToSheet();
   }
 }
 
