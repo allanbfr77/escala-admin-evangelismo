@@ -295,6 +295,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border2); color: var(--text-2); }
 .btn-modal-confirm { background: var(--green-dim); color: #fff; }
+.btn-modal-danger { background: var(--red); color: #fff; }
 
 /* ── MOBILE ── */
 .btn-sidebar-toggle {
@@ -513,6 +514,17 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
     <div class="modal-actions">
       <button class="btn btn-modal-cancel" onclick="closeAutoScheduleModal()">Cancelar</button>
       <button class="btn btn-modal-confirm" onclick="confirmAutoSchedule()">Gerar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dialog-modal" onclick="closeDialogModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-title" id="dialog-title">Aviso</div>
+    <div class="modal-text" id="dialog-message"></div>
+    <div class="modal-actions" id="dialog-actions">
+      <button class="btn btn-modal-cancel" id="dialog-cancel-btn" style="display:none">Cancelar</button>
+      <button class="btn btn-modal-confirm" id="dialog-ok-btn">OK</button>
     </div>
   </div>
 </div>
@@ -1330,13 +1342,67 @@ function generateAutoSchedule(mode) {
   syncToSheet();
 }
 
+function closeDialogModal(evt) {
+  if (evt && evt.target && evt.target.id !== 'dialog-modal') return;
+  var modal = document.getElementById('dialog-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+}
+
+function openAlertDialog(title, message) {
+  var modal = document.getElementById('dialog-modal');
+  if (!modal) return;
+  var titleEl = document.getElementById('dialog-title');
+  var msgEl = document.getElementById('dialog-message');
+  var okBtn = document.getElementById('dialog-ok-btn');
+  var cancelBtn = document.getElementById('dialog-cancel-btn');
+
+  titleEl.textContent = title || 'Aviso';
+  msgEl.textContent = message || '';
+  cancelBtn.style.display = 'none';
+  okBtn.textContent = 'OK';
+  okBtn.className = 'btn btn-modal-confirm';
+  okBtn.onclick = function() { closeDialogModal(); };
+  modal.classList.add('open');
+}
+
+function openConfirmDialog(opts) {
+  var modal = document.getElementById('dialog-modal');
+  if (!modal) return;
+  var titleEl = document.getElementById('dialog-title');
+  var msgEl = document.getElementById('dialog-message');
+  var okBtn = document.getElementById('dialog-ok-btn');
+  var cancelBtn = document.getElementById('dialog-cancel-btn');
+
+  titleEl.textContent = opts.title || 'Confirmar ação';
+  msgEl.textContent = opts.message || '';
+  cancelBtn.style.display = '';
+  cancelBtn.onclick = function() {
+    closeDialogModal();
+    if (typeof opts.onCancel === 'function') opts.onCancel();
+  };
+  okBtn.textContent = opts.confirmText || 'Confirmar';
+  okBtn.className = 'btn ' + (opts.danger ? 'btn-modal-danger' : 'btn-modal-confirm');
+  okBtn.onclick = function() {
+    closeDialogModal();
+    if (typeof opts.onConfirm === 'function') opts.onConfirm();
+  };
+  modal.classList.add('open');
+}
+
 function clearAll() {
-  if (confirm('Limpar escala?')) {
-    GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
-    saveSchedule();
-    renderAll();
-    syncToSheet();
-  }
+  openConfirmDialog({
+    title: 'Limpar escala',
+    message: 'Tem certeza que deseja limpar todas as alocações atuais?',
+    confirmText: 'Limpar',
+    danger: true,
+    onConfirm: function() {
+      GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+      saveSchedule();
+      renderAll();
+      syncToSheet();
+    }
+  });
 }
 
 /* ── EXPORT PNG ── */
@@ -1388,7 +1454,7 @@ function doDownload() {
       }).catch(function() {
         document.body.removeChild(wrap);
         hideLoading();
-        alert('Erro ao gerar imagem.');
+        openAlertDialog('Erro na exportação', 'Não foi possível gerar a imagem PNG. Tente novamente.');
       });
   }, 150);
 }
