@@ -266,6 +266,36 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 1s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+/* ── MODAL: ESCALA AUTOMÁTICA ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1001;
+  background: rgba(0,0,0,.6);
+  display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal-card {
+  width: 100%; max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  padding: 16px;
+}
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.modal-text { font-size: 13px; color: var(--text-2); line-height: 1.45; margin-bottom: 14px; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.modal-field label { font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .6px; }
+.modal-select {
+  width: 100%; padding: 9px 10px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border2); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.btn-modal-cancel { background: transparent; border: 1px solid var(--border2); color: var(--text-2); }
+.btn-modal-confirm { background: var(--green-dim); color: #fff; }
+
 /* ── MOBILE ── */
 .btn-sidebar-toggle {
   display: none; background: transparent; border: 1px solid var(--border);
@@ -418,7 +448,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
         <div class="toolbar">
           <div class="toolbar-title">Escala Mensal</div>
           <div class="toolbar-spacer"></div>
-          <button class="btn btn-ghost" onclick="generateAutoSchedule()">Gerar Escala Automática</button>
+          <button class="btn btn-ghost" onclick="openAutoScheduleModal()">Gerar Escala Automática</button>
           <button class="btn btn-ghost" onclick="clearAll()">Limpar Escala</button>
           <button class="btn btn-ghost" onclick="reloadSheet()">Atualizar Dados</button>
           <button class="btn btn-green" onclick="doDownload()">Exportar PNG</button>
@@ -465,6 +495,26 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 <div id="loading-overlay" class="hidden">
   <div class="spinner"></div>
   <p id="loading-msg">Carregando...</p>
+</div>
+
+<div class="modal-overlay" id="auto-modal" onclick="closeAutoScheduleModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-title">Gerar Escala Automática</div>
+    <div class="modal-text">
+      Escolha o critério da geração automática. A execução substitui as alocações atuais do dashboard.
+    </div>
+    <div class="modal-field">
+      <label for="auto-mode">Critério</label>
+      <select id="auto-mode" class="modal-select">
+        <option value="all">Escala integral (todos os usuários com disponibilidade)</option>
+        <option value="single">Apenas disponibilidade única (exatamente 1 data)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-modal-cancel" onclick="closeAutoScheduleModal()">Cancelar</button>
+      <button class="btn btn-modal-confirm" onclick="confirmAutoSchedule()">Gerar</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1235,12 +1285,28 @@ function showLoading(msg) {
   document.getElementById('loading-overlay').classList.remove('hidden');
 }
 function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
-function generateAutoSchedule() {
-  var ok = confirm(
-    'Gerar escala automática com base nas disponibilidades atuais?\n\n' +
-    'Isso vai substituir as alocações atuais no dashboard.'
-  );
-  if (!ok) return;
+function openAutoScheduleModal() {
+  var modal = document.getElementById('auto-modal');
+  if (!modal) return;
+  document.getElementById('auto-mode').value = 'all';
+  modal.classList.add('open');
+}
+
+function closeAutoScheduleModal(evt) {
+  if (evt && evt.target && evt.target.id !== 'auto-modal') return;
+  var modal = document.getElementById('auto-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+}
+
+function confirmAutoSchedule() {
+  var mode = document.getElementById('auto-mode').value || 'all';
+  closeAutoScheduleModal();
+  generateAutoSchedule(mode);
+}
+
+function generateAutoSchedule(mode) {
+  var generationMode = mode || 'all';
 
   var nextSchedule = {};
   GROUP_DATES.forEach(function(d) { nextSchedule[d.key] = []; });
@@ -1248,7 +1314,9 @@ function generateAutoSchedule() {
   MEMBERS.forEach(function(name) {
     var data = memberData[name];
     if (!data || !Array.isArray(data.dates) || data.dates.length === 0) return;
-    data.dates.forEach(function(dk) {
+    var uniqueDates = data.dates.filter(function(dk, i, arr) { return arr.indexOf(dk) === i; });
+    if (generationMode === 'single' && uniqueDates.length !== 1) return;
+    uniqueDates.forEach(function(dk) {
       if (!nextSchedule[dk]) return;
       if (nextSchedule[dk].indexOf(name) === -1) nextSchedule[dk].push(name);
     });
