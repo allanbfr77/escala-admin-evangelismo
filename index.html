@@ -418,6 +418,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
         <div class="toolbar">
           <div class="toolbar-title">Escala Mensal</div>
           <div class="toolbar-spacer"></div>
+          <button class="btn btn-ghost" onclick="generateAutoSchedule()">Gerar Escala Automática</button>
           <button class="btn btn-ghost" onclick="clearAll()">Limpar Escala</button>
           <button class="btn btn-ghost" onclick="reloadSheet()">Atualizar Dados</button>
           <button class="btn btn-green" onclick="doDownload()">Exportar PNG</button>
@@ -1234,6 +1235,33 @@ function showLoading(msg) {
   document.getElementById('loading-overlay').classList.remove('hidden');
 }
 function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+function generateAutoSchedule() {
+  var ok = confirm(
+    'Gerar escala automática com base nas disponibilidades atuais?\n\n' +
+    'Isso vai substituir as alocações atuais no dashboard.'
+  );
+  if (!ok) return;
+
+  var nextSchedule = {};
+  GROUP_DATES.forEach(function(d) { nextSchedule[d.key] = []; });
+
+  MEMBERS.forEach(function(name) {
+    var data = memberData[name];
+    if (!data || !Array.isArray(data.dates) || data.dates.length === 0) return;
+    data.dates.forEach(function(dk) {
+      if (!nextSchedule[dk]) return;
+      if (nextSchedule[dk].indexOf(name) === -1) nextSchedule[dk].push(name);
+    });
+  });
+
+  schedule = nextSchedule;
+  dedupeScheduleEntries();
+  saveSchedule();
+  renderAll();
+  renderPanel();
+  syncToSheet();
+}
+
 function clearAll() {
   if (confirm('Limpar escala?')) {
     GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
