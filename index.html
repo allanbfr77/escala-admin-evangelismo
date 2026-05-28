@@ -164,7 +164,7 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .person-flag {
   flex: 0 0 14px; width: 14px; height: 14px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--amber);
+  color: #ffffff;
 }
 .person-flag:empty { visibility: hidden; }
 .person-flag svg { width: 12px; height: 12px; display: block; }
@@ -452,6 +452,37 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 }
 .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 49; }
 .sidebar-backdrop.open { display: block; }
+
+@media (max-width: 1024px) {
+  .main-content { padding-left: 10px; padding-right: 10px; }
+
+  table.escala thead th { padding: 6px 2px; }
+  table.escala tbody td { padding: 6px 2px; }
+
+  .name-row {
+    padding: 4px 2px;
+    font-size: 10px;
+    gap: 2px;
+  }
+  .name-row .drag-handle {
+    margin-right: 2px;
+    font-size: 9px;
+  }
+  .name-row-end { gap: 2px; }
+  .leader-badge-slot {
+    flex: 0 0 26px;
+    width: 26px;
+  }
+  .leader-badge {
+    padding: 0 2px;
+    font-size: 7px;
+    letter-spacing: 0.15px;
+  }
+  .name-row .remove {
+    padding: 2px 2px;
+    font-size: 12px;
+  }
+}
 
 @media (max-width: 768px) {
   .login-card { padding: 32px 20px; margin: 16px; }
