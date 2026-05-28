@@ -964,19 +964,102 @@ function loadScheduleFromSheet() {
 /* Persiste o estado completo da escala via setSchedule.
    Substitui addPerson/removePerson individuais — evita problema de
    comparação de formato de data no servidor. */
-function syncToSheet() {
-  setSaveStatus('saving');
-  if (!window.fetch) { setSaveStatus('error'); return; }
-  dedupeScheduleEntries();
-  var url = SCRIPT_URL
+var _syncDebounceTimer = null;
+var _syncInFlight = false;
+var _syncNeedsRetry = false;
+var SYNC_DEBOUNCE_MS = 750;
+var SYNC_FETCH_TIMEOUT_MS = 30000;
+var SYNC_MAX_RETRIES = 3;
+var SYNC_RETRY_DELAY_MS = 1500;
+
+function buildSetScheduleUrl() {
+  return SCRIPT_URL
     + '?action=setSchedule'
     + '&sched=' + encodeURIComponent(JSON.stringify(schedule))
     + '&leaders=' + encodeURIComponent(JSON.stringify(scheduleLeaders))
-    + '&t='     + Date.now();
-  fetch(url, { cache: 'no-store' })
-    .then(function(res) { return res.json(); })
-    .then(function(r) { setSaveStatus(r && r.error ? 'error' : 'ok'); })
-    .catch(function() { setSaveStatus('error'); });
+    + '&t=' + Date.now();
+}
+
+function fetchSetScheduleWithTimeout(url) {
+  return new Promise(function(resolve, reject) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timeoutId = setTimeout(function() {
+      if (controller) controller.abort();
+      reject(new Error('timeout'));
+    }, SYNC_FETCH_TIMEOUT_MS);
+    var opts = { cache: 'no-store' };
+    if (controller) opts.signal = controller.signal;
+    fetch(url, opts)
+      .then(function(res) {
+        if (!res.ok) throw new Error('http_' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        clearTimeout(timeoutId);
+        resolve(data);
+      })
+      .catch(function(err) {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+  });
+}
+
+function attemptSetScheduleSave(attempt, onDone) {
+  var url = buildSetScheduleUrl();
+  fetchSetScheduleWithTimeout(url)
+    .then(function(r) {
+      if (r && r.error) throw new Error(String(r.error));
+      onDone(true);
+    })
+    .catch(function() {
+      if (attempt + 1 < SYNC_MAX_RETRIES) {
+        setTimeout(function() { attemptSetScheduleSave(attempt + 1, onDone); }, SYNC_RETRY_DELAY_MS);
+      } else {
+        onDone(false);
+      }
+    });
+}
+
+function executeSyncToSheet() {
+  if (!window.fetch) {
+    _syncInFlight = false;
+    setSaveStatus('error');
+    if (_syncNeedsRetry) {
+      _syncNeedsRetry = false;
+      executeSyncToSheet();
+    }
+    return;
+  }
+  dedupeScheduleEntries();
+  setSaveStatus('saving');
+  attemptSetScheduleSave(0, function(ok) {
+    _syncInFlight = false;
+    if (_syncNeedsRetry) {
+      _syncNeedsRetry = false;
+      enqueueSyncToSheet();
+      return;
+    }
+    setSaveStatus(ok ? 'ok' : 'error');
+  });
+}
+
+function enqueueSyncToSheet() {
+  if (_syncInFlight) {
+    _syncNeedsRetry = true;
+    return;
+  }
+  _syncInFlight = true;
+  executeSyncToSheet();
+}
+
+function syncToSheet() {
+  setSaveStatus('saving');
+  clearTimeout(_syncDebounceTimer);
+  _syncDebounceTimer = setTimeout(function() {
+    _syncDebounceTimer = null;
+    enqueueSyncToSheet();
+  }, SYNC_DEBOUNCE_MS);
 }
 
 function saveSession()  { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e) {} }
