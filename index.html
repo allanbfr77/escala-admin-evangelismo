@@ -1243,15 +1243,33 @@ function pruneScheduleLeaders() {
   });
 }
 
+function sortScheduleDateAlphabetically(dateKey) {
+  var arr = schedule[dateKey];
+  if (!Array.isArray(arr) || arr.length < 2) return;
+  arr.sort(function(a, b) {
+    var ia = MEMBERS.indexOf(a);
+    var ib = MEMBERS.indexOf(b);
+    if (ia === -1 && ib === -1) return String(a).localeCompare(String(b), 'pt-BR');
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+}
+
 function setDateLeader(name, dateKey) {
   var arr = schedule[dateKey];
   if (!Array.isArray(arr)) return;
   var idx = arr.indexOf(name);
   if (idx === -1) return;
-  scheduleLeaders[dateKey] = name;
-  if (idx > 0) {
-    arr.splice(idx, 1);
-    arr.unshift(name);
+  if (scheduleLeaders[dateKey] === name) {
+    delete scheduleLeaders[dateKey];
+    sortScheduleDateAlphabetically(dateKey);
+  } else {
+    scheduleLeaders[dateKey] = name;
+    if (idx > 0) {
+      arr.splice(idx, 1);
+      arr.unshift(name);
+    }
   }
   saveSchedule();
   renderAll();
