@@ -262,7 +262,7 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 .slot-cell { min-height: 60px; display: flex; flex-direction: column; gap: 0; align-items: stretch; min-width: 0; }
 .name-row {
   padding: 5px 6px; font-size: 11px; font-weight: 600; color: #ffffff;
-  cursor: grab; display: flex; align-items: center; justify-content: space-between;
+  cursor: grab; display: flex; align-items: center; gap: 4px;
   transition: opacity .15s, box-shadow .15s, transform .15s; min-width: 0;
 }
 .name-row.zebra-even { background: rgba(255,255,255,0.04); }
@@ -290,9 +290,17 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .name-row.is-leader .name-text { color: var(--gold); }
+.name-row-end {
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0; margin-left: auto;
+}
+.leader-badge-slot {
+  flex: 0 0 34px; width: 34px;
+  display: flex; align-items: center; justify-content: flex-end;
+}
+.leader-badge-slot:empty { visibility: hidden; }
 .leader-badge {
   display: inline-block;
-  margin-left: 4px;
   padding: 1px 4px;
   font-size: 8px;
   font-weight: 700;
@@ -302,9 +310,9 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
   background: var(--gold-glow);
   border: 1px solid rgba(255,215,0,.4);
   border-radius: 3px;
-  vertical-align: middle;
   user-select: none;
   pointer-events: none;
+  flex-shrink: 0;
 }
 .drag-ghost {
   position: fixed;
@@ -1701,7 +1709,10 @@ function renderTable() {
       var isLeader = scheduleLeaders[d.key] === name;
       var leaderBadge = isLeader ? '<span class="leader-badge">Líder</span>' : '';
       var leaderClass = isLeader ? ' is-leader' : '';
-      html += '<div class="name-row ' + z + leaderClass + '" draggable="true" data-date-key="' + d.key + '" data-index="' + i + '"><span class="drag-handle">⋮⋮</span><span class="name-text">' + name + leaderBadge + '</span><span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></div>';
+      html += '<div class="name-row ' + z + leaderClass + '" draggable="true" data-date-key="' + d.key + '" data-index="' + i + '">'
+        + '<span class="drag-handle">⋮⋮</span><span class="name-text">' + name + '</span>'
+        + '<span class="name-row-end"><span class="leader-badge-slot">' + leaderBadge + '</span>'
+        + '<span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></span></div>';
     });
     html += '</div></td>';
   });
