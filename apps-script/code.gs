@@ -22,7 +22,7 @@ function doGet(e) {
     else if (action === 'getUsedNames') result = getUsedNames();
     else if (action === 'nomesOcupados') result = getOccupiedNames(e.parameter.periodo);
     else if (action === 'getSchedule') result = getScheduleData();
-    else if (action === 'setSchedule') result = setScheduleData(e.parameter.sched);
+    else if (action === 'setSchedule') result = setScheduleData(e.parameter.sched, e.parameter.leaders);
     else if (action === 'addPerson') result = addPerson(e.parameter.date, e.parameter.name);
     else if (action === 'removePerson') result = removePerson(e.parameter.date, e.parameter.name);
     else if (action === 'clearSchedule') result = clearScheduleData();
@@ -247,10 +247,17 @@ function getEscalaSheet() {
   var sheet = ss.getSheetByName('Escala');
   if (!sheet) {
     sheet = ss.insertSheet('Escala');
-    sheet.appendRow(['Data', 'Nome']);
-    sheet.getRange(1, 1, 1, 2).setFontWeight('bold');
+    sheet.appendRow(['Data', 'Nome', 'Lider']);
+    sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+  } else if (String(sheet.getRange(1, 3).getValue() || '').trim() !== 'Lider') {
+    sheet.getRange(1, 3).setValue('Lider').setFontWeight('bold');
   }
   return sheet;
+}
+
+function isLeaderCell(val) {
+  var s = String(val || '').trim().toLowerCase();
+  return s === '✓' || s === '1' || s === 'sim' || s === 'true' || s === 'lider' || s === 'líder';
 }
 
 function readEscalaRows(sheet) {
@@ -267,27 +274,36 @@ function readEscalaRows(sheet) {
 
 function getScheduleData() {
   var sheet = getEscalaSheet();
-  var data = readEscalaRows(sheet);
+  var rows = sheet.getDataRange().getValues();
   var result = {};
+  var leaders = {};
   var seen = {};
 
-  for (var i = 0; i < data.length; i++) {
-    var date = data[i][0];
-    var name = data[i][1];
+  for (var i = 1; i < rows.length; i++) {
+    var date = normalizeDate(rows[i][0]);
+    var name = String(rows[i][1] || '').trim();
+    if (!date || !name) continue;
+
     var pairKey = date + '\t' + name.toUpperCase();
     if (seen[pairKey]) continue;
     seen[pairKey] = true;
 
     if (!result[date]) result[date] = [];
     result[date].push(name);
+    if (isLeaderCell(rows[i][2]) && !leaders[date]) leaders[date] = name;
   }
-  return result;
+  return { schedule: result, leaders: leaders };
 }
 
-function setScheduleData(schedJson) {
+function setScheduleData(schedJson, leadersJson) {
   if (!schedJson) return { status: 'error', msg: 'missing sched' };
 
   var sched = JSON.parse(schedJson);
+  var leaders = {};
+  if (leadersJson) {
+    try { leaders = JSON.parse(leadersJson) || {}; } catch (e) { leaders = {}; }
+  }
+
   var sheet = getEscalaSheet();
   var lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
@@ -303,6 +319,8 @@ function setScheduleData(schedJson) {
     var names = sched[rawDateKey];
     if (!Array.isArray(names)) return;
 
+    var leaderName = String(leaders[rawDateKey] || leaders[date] || '').trim();
+
     for (var n = 0; n < names.length; n++) {
       var name = String(names[n] || '').trim();
       if (!name) continue;
@@ -311,7 +329,8 @@ function setScheduleData(schedJson) {
       if (seen[pairKey]) continue;
       seen[pairKey] = true;
 
-      rows.push([date, name]);
+      var isLeader = leaderName && name.toUpperCase() === leaderName.toUpperCase();
+      rows.push([date, name, isLeader ? '✓' : '']);
     }
   }
 
@@ -327,11 +346,11 @@ function setScheduleData(schedJson) {
   for (var r = 0; r < rows.length; r++) {
     var newRow = sheet.getLastRow() + 1;
     sheet.getRange(newRow, 1).setNumberFormat('@STRING@');
-    sheet.getRange(newRow, 1, 1, 2).setValues([rows[r]]);
+    sheet.getRange(newRow, 1, 1, 3).setValues([rows[r]]);
   }
 
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
 
   return { status: 'ok' };
@@ -352,9 +371,9 @@ function addPerson(date, name) {
   }
   var newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 1).setNumberFormat('@STRING@');
-  sheet.getRange(newRow, 1, 1, 2).setValues([[date, name]]);
+  sheet.getRange(newRow, 1, 1, 3).setValues([[date, name, '']]);
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
   return { status: 'ok' };
 }
@@ -375,7 +394,7 @@ function removePerson(date, name) {
   if (targetRow === -1) return { status: 'not_found' };
   sheet.deleteRow(targetRow);
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
   return { status: 'ok' };
 }

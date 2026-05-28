@@ -772,7 +772,7 @@ var MEMBERS = [
 
 var memberData = {};
 var schedule = {};
-var scheduleLeaders = {}; /* líder por data — apenas dashboard (não exporta PNG / planilha) */
+var scheduleLeaders = {}; /* líder por data — persistido na aba Escala (coluna Lider) */
 GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
 var selectedPerson = null;
 var scheduleModalPerson = null;
@@ -784,7 +784,21 @@ var SESSION_KEY     = 'escala_session_junho2026';
 var SHEET_CACHE_KEY = 'escala_sheet_cache_junho2026';
 
 function saveSchedule() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(schedule)); } catch(e) {}
+  try {
+    var payload = { schedule: {}, leaders: scheduleLeaders };
+    GROUP_DATES.forEach(function(d) { payload.schedule[d.key] = schedule[d.key]; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e) {}
+}
+
+function loadScheduleLeadersFromObject(leadersObj) {
+  scheduleLeaders = {};
+  if (!leadersObj || typeof leadersObj !== 'object') return;
+  Object.keys(leadersObj).forEach(function(rawKey) {
+    var key = formatDateForCode(rawKey);
+    var name = String(leadersObj[rawKey] || '').trim();
+    if (key && name) scheduleLeaders[key] = name;
+  });
 }
 
 function loadSchedule() {
@@ -792,10 +806,13 @@ function loadSchedule() {
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       var parsed = JSON.parse(saved);
+      var schedData = parsed.schedule || parsed;
       GROUP_DATES.forEach(function(d) {
-        if (Array.isArray(parsed[d.key])) schedule[d.key] = parsed[d.key];
+        if (Array.isArray(schedData[d.key])) schedule[d.key] = schedData[d.key];
       });
+      loadScheduleLeadersFromObject(parsed.leaders);
       dedupeScheduleEntries();
+      GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
     }
   } catch(e) {}
 }
@@ -886,15 +903,19 @@ function loadScheduleFromSheet() {
   if (!window.fetch) return;
   fetch(SCRIPT_URL + '?action=getSchedule&t=' + Date.now(), { cache: 'no-store' })
     .then(function(res) { return res.json(); })
-    .then(function(sched) {
-      if (!sched || sched.error || typeof sched !== 'object') return;
+    .then(function(data) {
+      if (!data || data.error || typeof data !== 'object') return;
+      var sched = data.schedule || data;
+      var leaders = data.leaders || {};
       GROUP_DATES.forEach(function(d) { schedule[d.key] = []; });
       Object.keys(sched).forEach(function(rawKey) {
         var key = formatDateForCode(rawKey);
         if (!key || !Array.isArray(sched[rawKey])) return;
         schedule[key] = sched[rawKey].slice();
       });
+      loadScheduleLeadersFromObject(leaders);
       dedupeScheduleEntries();
+      GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
       saveSchedule();
       renderAll();
     })
@@ -911,6 +932,7 @@ function syncToSheet() {
   var url = SCRIPT_URL
     + '?action=setSchedule'
     + '&sched=' + encodeURIComponent(JSON.stringify(schedule))
+    + '&leaders=' + encodeURIComponent(JSON.stringify(scheduleLeaders))
     + '&t='     + Date.now();
   fetch(url, { cache: 'no-store' })
     .then(function(res) { return res.json(); })
@@ -1222,6 +1244,7 @@ function confirmScheduleModal() {
     else if (!wantAllocated && idx > -1) schedule[dk].splice(idx, 1);
   });
   dedupeScheduleEntries();
+  Object.keys(scheduleModalDraft).forEach(function(dk) { applyDateDisplayOrder(dk); });
   saveSchedule();
   var modal = document.getElementById('schedule-modal');
   if (modal) modal.classList.remove('open');
@@ -1256,21 +1279,29 @@ function sortScheduleDateAlphabetically(dateKey) {
   });
 }
 
+function applyDateDisplayOrder(dateKey) {
+  var arr = schedule[dateKey];
+  if (!Array.isArray(arr) || arr.length < 2) return;
+  var leader = scheduleLeaders[dateKey];
+  sortScheduleDateAlphabetically(dateKey);
+  if (!leader) return;
+  var idx = arr.indexOf(leader);
+  if (idx > 0) {
+    arr.splice(idx, 1);
+    arr.unshift(leader);
+  }
+}
+
 function setDateLeader(name, dateKey) {
   var arr = schedule[dateKey];
   if (!Array.isArray(arr)) return;
-  var idx = arr.indexOf(name);
-  if (idx === -1) return;
+  if (arr.indexOf(name) === -1) return;
   if (scheduleLeaders[dateKey] === name) {
     delete scheduleLeaders[dateKey];
-    sortScheduleDateAlphabetically(dateKey);
   } else {
     scheduleLeaders[dateKey] = name;
-    if (idx > 0) {
-      arr.splice(idx, 1);
-      arr.unshift(name);
-    }
   }
+  applyDateDisplayOrder(dateKey);
   saveSchedule();
   renderAll();
   renderPanel();
@@ -1535,6 +1566,7 @@ function toggleAlloc(name, dk) {
     if (scheduleLeaders[dk] === name) delete scheduleLeaders[dk];
   } else schedule[dk].push(name);
   dedupeScheduleEntries();
+  applyDateDisplayOrder(dk);
   saveSchedule();
   renderAll();
   renderPanel();
@@ -1762,6 +1794,7 @@ function generateAutoSchedule(mode) {
 
   schedule = nextSchedule;
   dedupeScheduleEntries();
+  GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
   saveSchedule();
   renderAll();
   renderPanel();
