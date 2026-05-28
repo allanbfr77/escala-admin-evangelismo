@@ -254,6 +254,23 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 }
 .name-row:active .drag-handle { cursor: grabbing; }
 .name-row .name-text { flex: 1; min-width: 0; }
+.name-row.is-leader .name-text { color: var(--green); }
+.leader-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  color: var(--green);
+  background: rgba(63,185,80,.15);
+  border: 1px solid rgba(63,185,80,.35);
+  border-radius: 3px;
+  vertical-align: middle;
+  user-select: none;
+  pointer-events: none;
+}
 .drag-ghost {
   position: fixed;
   z-index: 9999;
@@ -755,6 +772,7 @@ var MEMBERS = [
 
 var memberData = {};
 var schedule = {};
+var scheduleLeaders = {}; /* líder por data — apenas dashboard (não exporta PNG / planilha) */
 GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
 var selectedPerson = null;
 var scheduleModalPerson = null;
@@ -1216,6 +1234,30 @@ function confirmScheduleModal() {
 
 /* ── TABLE ── */
 var dndBound = false;
+var leaderDblBound = false;
+
+function pruneScheduleLeaders() {
+  GROUP_DATES.forEach(function(d) {
+    var leader = scheduleLeaders[d.key];
+    if (leader && schedule[d.key].indexOf(leader) === -1) delete scheduleLeaders[d.key];
+  });
+}
+
+function setDateLeader(name, dateKey) {
+  var arr = schedule[dateKey];
+  if (!Array.isArray(arr)) return;
+  var idx = arr.indexOf(name);
+  if (idx === -1) return;
+  scheduleLeaders[dateKey] = name;
+  if (idx > 0) {
+    arr.splice(idx, 1);
+    arr.unshift(name);
+  }
+  saveSchedule();
+  renderAll();
+  renderPanel();
+  syncToSheet();
+}
 var dragState = { active: false, dateKey: null, fromIndex: -1 };
 var touchState = {
   active: false, started: false, timer: null, row: null,
@@ -1424,7 +1466,28 @@ function bindTableDnD() {
   body.addEventListener('touchcancel', function() { finishTouchDrag(true); }, { passive: true });
 }
 
+function bindTableLeaderDblClick() {
+  if (leaderDblBound) return;
+  leaderDblBound = true;
+  var body = document.getElementById('escala-body');
+  if (!body) return;
+  body.addEventListener('dblclick', function(evt) {
+    var text = evt.target.closest('.name-text');
+    if (!text) return;
+    var row = text.closest('.name-row');
+    if (!row || evt.target.closest('.remove')) return;
+    var dateKey = row.dataset.dateKey;
+    var idx = parseInt(row.dataset.index, 10);
+    if (!dateKey || isNaN(idx)) return;
+    var name = schedule[dateKey][idx];
+    if (!name) return;
+    evt.preventDefault();
+    setDateLeader(name, dateKey);
+  });
+}
+
 function renderTable() {
+  pruneScheduleLeaders();
   var head = document.getElementById('escala-head');
   var body = document.getElementById('escala-body');
   head.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
@@ -1435,18 +1498,24 @@ function renderTable() {
     html += '<td data-label="' + d.day + ' · ' + d.full + ' · ' + d.hora + '"><div class="slot-cell" data-date-key="' + d.key + '">';
     schedule[d.key].forEach(function(name, i) {
       var z = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
-      html += '<div class="name-row ' + z + '" draggable="true" data-date-key="' + d.key + '" data-index="' + i + '"><span class="drag-handle">⋮⋮</span><span class="name-text">' + name + '</span><span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></div>';
+      var isLeader = scheduleLeaders[d.key] === name;
+      var leaderBadge = isLeader ? '<span class="leader-badge">Líder</span>' : '';
+      var leaderClass = isLeader ? ' is-leader' : '';
+      html += '<div class="name-row ' + z + leaderClass + '" draggable="true" data-date-key="' + d.key + '" data-index="' + i + '"><span class="drag-handle">⋮⋮</span><span class="name-text">' + name + leaderBadge + '</span><span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></div>';
     });
     html += '</div></td>';
   });
   body.innerHTML = html + '</tr>';
   bindTableDnD();
+  bindTableLeaderDblClick();
 }
 
 function toggleAlloc(name, dk) {
   var idx = schedule[dk].indexOf(name);
-  if (idx > -1) schedule[dk].splice(idx, 1);
-  else schedule[dk].push(name);
+  if (idx > -1) {
+    schedule[dk].splice(idx, 1);
+    if (scheduleLeaders[dk] === name) delete scheduleLeaders[dk];
+  } else schedule[dk].push(name);
   dedupeScheduleEntries();
   saveSchedule();
   renderAll();
@@ -1737,6 +1806,7 @@ function clearAll() {
     danger: true,
     onConfirm: function() {
       GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+      scheduleLeaders = {};
       saveSchedule();
       renderAll();
       syncToSheet();
