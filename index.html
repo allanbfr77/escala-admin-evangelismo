@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 <title>Ministério de Evangelismo & Integração</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -243,8 +243,8 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .stat-pill .num { font-weight: 700; color: var(--green); }
 
 /* ── DASHBOARD TABLE ── */
-.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-table.escala { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; touch-action: manipulation; }
+table.escala { border-collapse: collapse; width: 100%; table-layout: fixed; touch-action: manipulation; }
 table.escala thead th {
   padding: 8px 6px; text-align: center; width: 20%;
   font-size: 10px; color: var(--text-2); background: var(--surface2);
@@ -264,6 +264,7 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
   padding: 5px 6px; font-size: 11px; font-weight: 600; color: #ffffff;
   cursor: grab; display: flex; align-items: center; gap: 4px;
   transition: opacity .15s, box-shadow .15s, transform .15s; min-width: 0;
+  touch-action: manipulation;
 }
 .name-row.zebra-even { background: rgba(255,255,255,0.04); }
 .name-row.zebra-odd  { background: rgba(255,255,255,0.09); }
@@ -1448,6 +1449,7 @@ function confirmScheduleModal() {
 /* ── TABLE ── */
 var dndBound = false;
 var leaderDblBound = false;
+var leaderTouchState = { timer: null, row: null, dateKey: null, index: -1, startX: 0, startY: 0 };
 
 function pruneScheduleLeaders() {
   GROUP_DATES.forEach(function(d) {
@@ -1663,10 +1665,10 @@ function bindTableDnD() {
     document.querySelectorAll('.name-row.dragging').forEach(function(el) { el.classList.remove('dragging'); });
   });
 
-  // Mobile (toque longo)
+  // Mobile (toque longo — arrastar pelo handle; nome reservado para definir líder)
   body.addEventListener('touchstart', function(evt) {
     var row = evt.target.closest('.name-row');
-    if (!row || evt.target.closest('.remove')) return;
+    if (!row || evt.target.closest('.remove') || evt.target.closest('.name-text')) return;
     var p = getTouchPoint(evt);
     if (!p) return;
     touchState.row = row;
@@ -1705,6 +1707,14 @@ function bindTableDnD() {
   body.addEventListener('touchcancel', function() { finishTouchDrag(true); }, { passive: true });
 }
 
+function clearLeaderTouchTimer() {
+  clearTimeout(leaderTouchState.timer);
+  leaderTouchState.timer = null;
+  leaderTouchState.row = null;
+  leaderTouchState.dateKey = null;
+  leaderTouchState.index = -1;
+}
+
 function bindTableLeaderDblClick() {
   if (leaderDblBound) return;
   leaderDblBound = true;
@@ -1723,6 +1733,43 @@ function bindTableLeaderDblClick() {
     evt.preventDefault();
     setDateLeader(name, dateKey);
   });
+
+  body.addEventListener('touchstart', function(evt) {
+    var text = evt.target.closest('.name-text');
+    if (!text) return;
+    var row = text.closest('.name-row');
+    if (!row || evt.target.closest('.remove')) return;
+    var p = getTouchPoint(evt);
+    if (!p) return;
+    leaderTouchState.row = row;
+    leaderTouchState.dateKey = row.dataset.dateKey;
+    leaderTouchState.index = parseInt(row.dataset.index, 10);
+    leaderTouchState.startX = p.clientX;
+    leaderTouchState.startY = p.clientY;
+    clearTimeout(leaderTouchState.timer);
+    leaderTouchState.timer = setTimeout(function() {
+      if (!leaderTouchState.row) return;
+      var dateKey = leaderTouchState.dateKey;
+      var idx = leaderTouchState.index;
+      if (!dateKey || isNaN(idx)) return;
+      var name = schedule[dateKey] && schedule[dateKey][idx];
+      if (!name) return;
+      setDateLeader(name, dateKey);
+      clearLeaderTouchTimer();
+    }, 800);
+  }, { passive: true });
+
+  body.addEventListener('touchmove', function(evt) {
+    if (!leaderTouchState.timer) return;
+    var p = getTouchPoint(evt);
+    if (!p) return;
+    var dx = Math.abs(p.clientX - leaderTouchState.startX);
+    var dy = Math.abs(p.clientY - leaderTouchState.startY);
+    if (dx > 10 || dy > 10) clearLeaderTouchTimer();
+  }, { passive: true });
+
+  body.addEventListener('touchend', clearLeaderTouchTimer, { passive: true });
+  body.addEventListener('touchcancel', clearLeaderTouchTimer, { passive: true });
 }
 
 function renderTable() {
