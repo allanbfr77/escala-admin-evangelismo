@@ -555,7 +555,6 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
       <span class="topbar-badge">JUNHO 2026</span>
     </div>
     <div class="topbar-right">
-      <div class="topbar-status"><div class="status-dot"></div><span>Online</span></div>
       <span class="save-status" id="save-status"></span>
       <button class="btn-logout" onclick="doLogout()" aria-label="Sair">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -701,14 +700,7 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   <div class="modal-card" onclick="event.stopPropagation()">
     <div class="modal-title">Gerar Escala Automática</div>
     <div class="modal-text">
-      Escolha o critério da geração automática. A execução substitui as alocações atuais do dashboard.
-    </div>
-    <div class="modal-field">
-      <label for="auto-mode">Critério</label>
-      <select id="auto-mode" class="modal-select">
-        <option value="all">Escala integral (todos os usuários com disponibilidade)</option>
-        <option value="single">Apenas disponibilidade única (exatamente 1 data)</option>
-      </select>
+      Gera a escala apenas para membros com disponibilidade em uma única data. A execução substitui as alocações atuais do dashboard.
     </div>
     <div class="modal-actions">
       <button class="btn btn-modal-cancel" onclick="closeAutoScheduleModal()">Cancelar</button>
@@ -1758,7 +1750,6 @@ function hideLoading() { document.getElementById('loading-overlay').classList.ad
 function openAutoScheduleModal() {
   var modal = document.getElementById('auto-modal');
   if (!modal) return;
-  document.getElementById('auto-mode').value = 'all';
   modal.classList.add('open');
 }
 
@@ -1770,9 +1761,15 @@ function closeAutoScheduleModal(evt) {
 }
 
 function confirmAutoSchedule() {
-  var mode = document.getElementById('auto-mode').value || 'all';
   closeAutoScheduleModal();
-  generateAutoSchedule(mode);
+  openConfirmDialog({
+    title: 'Gerar Escala Automática',
+    message: 'Deseja gerar a escala apenas para membros com disponibilidade em uma única data? As alocações atuais serão substituídas.',
+    confirmText: 'Gerar',
+    onConfirm: function() {
+      generateAutoSchedule('single');
+    }
+  });
 }
 
 function generateAutoSchedule(mode) {
