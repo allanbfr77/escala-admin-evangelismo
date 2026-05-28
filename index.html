@@ -370,6 +370,16 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
 .btn-modal-cancel { background: transparent; border: 1px solid var(--border2); color: var(--text-2); }
 .btn-modal-confirm { background: var(--green-dim); color: #fff; }
 .btn-modal-danger { background: var(--red); color: #fff; }
+.schedule-modal-card { position: relative; }
+.modal-close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: transparent; border: none; color: var(--text-2);
+  font-size: 20px; line-height: 1; cursor: pointer; padding: 4px;
+}
+.modal-close-btn:hover { color: var(--text); }
+.schedule-modal-card .modal-title { padding-right: 28px; margin-bottom: 12px; }
+#schedule-modal-title.highlight { color: var(--amber); }
+.modal-dates { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; max-height: 50vh; overflow-y: auto; }
 
 /* ── MOBILE ── */
 .btn-sidebar-toggle {
@@ -701,6 +711,18 @@ table.escala tbody td { padding: 10px 16px; border-bottom: 1px solid var(--borde
   </div>
 </div>
 
+<div class="modal-overlay" id="schedule-modal" onclick="closeScheduleModal(event)">
+  <div class="modal-card schedule-modal-card" onclick="event.stopPropagation()">
+    <button type="button" class="modal-close-btn" onclick="closeScheduleModal()" aria-label="Fechar">×</button>
+    <div class="modal-title" id="schedule-modal-title">---</div>
+    <div class="modal-dates" id="schedule-modal-dates"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-modal-cancel" onclick="closeScheduleModal()">Cancelar</button>
+      <button type="button" class="btn btn-modal-confirm" onclick="confirmScheduleModal()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQacux9pNeju5fuqrpk51NKfdzp7S_SSMjKi93jp0N8vz9XsxPWoTxtJrnqoWlw7eLyg/exec';
@@ -735,6 +757,8 @@ var memberData = {};
 var schedule = {};
 GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
 var selectedPerson = null;
+var scheduleModalPerson = null;
+var scheduleModalDraft = {};
 
 /* ── PERSISTÊNCIA LOCAL (cache / fallback) ── */
 var STORAGE_KEY     = 'escala_evangelismo_junho2026_v2'; // v2 = chaves ISO 8601
@@ -1103,46 +1127,91 @@ function renderSidebar() {
 }
 
 function selectPerson(name) {
-  selectedPerson = selectedPerson === name ? null : name;
-  renderSidebar();
-  renderPanel();
-  renderAvailGrid();
+  openScheduleModal(name);
 }
 
 function clearSelection() {
   selectedPerson = null;
+  closeScheduleModal();
   renderSidebar();
-  renderPanel();
   renderAvailGrid();
 }
 
-function renderPanel() {
-  var panel = document.getElementById('person-panel');
-  var datesDiv = document.getElementById('panel-dates');
-  var panelName = document.getElementById('panel-name');
-  if (!selectedPerson) {
-    panel.classList.remove('open');
-    panelName.classList.remove('highlight');
-    return;
-  }
-  panel.classList.add('open');
-  panelName.textContent = selectedPerson;
-  panelName.classList.toggle('highlight', isHighlightMember(selectedPerson));
+function renderPanel() {}
+
+function openScheduleModal(name) {
+  if (!memberData[name] || !memberData[name].dates || memberData[name].dates.length === 0) return;
+  selectedPerson = name;
+  scheduleModalPerson = name;
+  scheduleModalDraft = {};
+  memberData[name].dates.forEach(function(dk) {
+    scheduleModalDraft[dk] = schedule[dk].indexOf(name) > -1;
+  });
+  var modal = document.getElementById('schedule-modal');
+  if (!modal) return;
+  modal.classList.add('open');
+  renderScheduleModal();
+  renderSidebar();
+  renderAvailGrid();
+}
+
+function closeScheduleModal(evt) {
+  if (evt && evt.target && evt.target.id !== 'schedule-modal') return;
+  var modal = document.getElementById('schedule-modal');
+  if (modal) modal.classList.remove('open');
+  scheduleModalPerson = null;
+  scheduleModalDraft = {};
+  selectedPerson = null;
+  renderSidebar();
+  renderAvailGrid();
+}
+
+function renderScheduleModal() {
+  var titleEl = document.getElementById('schedule-modal-title');
+  var datesDiv = document.getElementById('schedule-modal-dates');
+  if (!titleEl || !datesDiv || !scheduleModalPerson) return;
+  titleEl.textContent = scheduleModalPerson;
+  titleEl.classList.toggle('highlight', isHighlightMember(scheduleModalPerson));
   var dateOrder = GROUP_DATES.map(function(d){ return d.key; });
-  var dates = ((memberData[selectedPerson] && memberData[selectedPerson].dates) || [])
+  var dates = (memberData[scheduleModalPerson].dates || [])
     .slice()
     .sort(function(a, b){ return dateOrder.indexOf(a) - dateOrder.indexOf(b); });
   datesDiv.innerHTML = '';
   dates.forEach(function(dk) {
     var dObj = GROUP_DATES.find(function(d){ return d.key === dk; });
     if (!dObj) return;
-    var allocated = schedule[dk].includes(selectedPerson);
+    var allocated = !!scheduleModalDraft[dk];
     var btn = document.createElement('div');
     btn.className = 'panel-date-btn' + (allocated ? ' allocated' : '');
     btn.innerHTML = '<span>' + dObj.day + ', ' + dObj.full + ' · ' + dObj.hora + '</span><span>' + (allocated ? '✓' : '+') + '</span>';
-    btn.onclick = function(){ toggleAlloc(selectedPerson, dk); };
+    btn.onclick = function() { toggleScheduleModalDate(dk); };
     datesDiv.appendChild(btn);
   });
+}
+
+function toggleScheduleModalDate(dk) {
+  scheduleModalDraft[dk] = !scheduleModalDraft[dk];
+  renderScheduleModal();
+}
+
+function confirmScheduleModal() {
+  var name = scheduleModalPerson;
+  if (!name) return;
+  Object.keys(scheduleModalDraft).forEach(function(dk) {
+    var wantAllocated = scheduleModalDraft[dk];
+    var idx = schedule[dk].indexOf(name);
+    if (wantAllocated && idx === -1) schedule[dk].push(name);
+    else if (!wantAllocated && idx > -1) schedule[dk].splice(idx, 1);
+  });
+  dedupeScheduleEntries();
+  saveSchedule();
+  var modal = document.getElementById('schedule-modal');
+  if (modal) modal.classList.remove('open');
+  scheduleModalPerson = null;
+  scheduleModalDraft = {};
+  selectedPerson = null;
+  renderAll();
+  syncToSheet();
 }
 
 /* ── TABLE ── */
