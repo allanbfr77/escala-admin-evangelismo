@@ -258,6 +258,26 @@ table.escala thead th .col-day {
   display: block; margin-top: 3px;
   font-size: 10px; line-height: 1.25; word-break: break-word;
 }
+table.escala tfoot td {
+  padding: 8px 6px; text-align: center; width: 20%;
+  font-size: 10px; background: var(--surface2);
+  border-top: 1px solid var(--border);
+}
+table.escala tfoot .col-count,
+.escala-day-footer .col-count {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; line-height: 1.3;
+  color: var(--green);
+  background: rgba(63,185,80,.12);
+  border: 1px solid rgba(63,185,80,.25);
+}
+.escala-day-footer {
+  display: none;
+  padding: 8px 14px; text-align: center;
+  border-top: 1px solid var(--border2);
+  background: var(--surface2);
+}
 table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2); vertical-align: top; }
 .slot-cell { min-height: 60px; display: flex; flex-direction: column; gap: 0; align-items: stretch; min-width: 0; }
 .name-row {
@@ -528,9 +548,10 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 
   /* Dashboard → vertical cards */
   .table-wrap { background: transparent; border: none; border-radius: 0; overflow: visible; }
-  table.escala, table.escala thead, table.escala tbody,
+  table.escala, table.escala thead, table.escala tbody, table.escala tfoot,
   table.escala tr, table.escala th, table.escala td { display: block; width: 100%; }
   table.escala thead tr { display: none; }
+  table.escala tfoot tr { display: none; }
   table.escala tbody tr { display: flex; flex-direction: column; gap: 10px; }
   table.escala tbody td {
     background: var(--surface); border: 1px solid var(--border);
@@ -544,6 +565,7 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
     text-transform: uppercase; letter-spacing: 0.6px;
   }
   .slot-cell { min-height: 40px; }
+  .escala-day-footer { display: block; }
   .name-row { font-size: 13px; padding: 8px 14px; }
   .stat-pill { font-size: 12px; padding: 6px 10px; }
 
@@ -757,6 +779,7 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
           <table class="escala">
             <thead id="escala-head"></thead>
             <tbody id="escala-body"></tbody>
+            <tfoot id="escala-foot"></tfoot>
           </table>
         </div>
 
@@ -1772,15 +1795,25 @@ function bindTableLeaderDblClick() {
   body.addEventListener('touchcancel', clearLeaderTouchTimer, { passive: true });
 }
 
+function scheduledCountLabel(count) {
+  return count + (count === 1 ? ' pessoa' : ' pessoas');
+}
+
 function renderTable() {
   pruneScheduleLeaders();
   var head = document.getElementById('escala-head');
   var body = document.getElementById('escala-body');
+  var foot = document.getElementById('escala-foot');
   head.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
     return '<th><span class="col-date">' + d.full + '</span><span class="col-day">' + d.day + ' · ' + d.hora + '</span></th>';
   }).join('') + '</tr>';
+  foot.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
+    var count = schedule[d.key].length;
+    return '<td><span class="col-count">' + scheduledCountLabel(count) + '</span></td>';
+  }).join('') + '</tr>';
   var html = '<tr>';
   GROUP_DATES.forEach(function(d) {
+    var count = schedule[d.key].length;
     html += '<td data-label="' + d.day + ' · ' + d.full + ' · ' + d.hora + '"><div class="slot-cell" data-date-key="' + d.key + '">';
     schedule[d.key].forEach(function(name, i) {
       var z = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
@@ -1792,7 +1825,7 @@ function renderTable() {
         + '<span class="name-row-end"><span class="leader-badge-slot">' + leaderBadge + '</span>'
         + '<span class="remove" onclick="toggleAlloc(\'' + name + '\',\'' + d.key + '\')">×</span></span></div>';
     });
-    html += '</div></td>';
+    html += '</div><div class="escala-day-footer"><span class="col-count">' + scheduledCountLabel(count) + '</span></div></td>';
   });
   body.innerHTML = html + '</tr>';
   bindTableDnD();
