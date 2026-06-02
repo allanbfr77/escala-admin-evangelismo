@@ -6,6 +6,10 @@
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
 var DATE_COLS = ['03/jun', '06/jun', '20/jun', '24/jun', '28/jun'];
 var RECEIVED_AT_COL = 9; // Coluna I
+var MINISTRY_NAME = 'Evangelismo & Integração';
+var ROLE_VOLUNTEER = 'Voluntário';
+var ROLE_LEADER = 'Líder';
+var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
 var SCHEDULE_DATE_KEYS = ['2026-06-03', '2026-06-06', '2026-06-20', '2026-06-24', '2026-06-28'];
@@ -26,6 +30,10 @@ function doGet(e) {
     else if (action === 'addPerson') result = addPerson(e.parameter.date, e.parameter.name);
     else if (action === 'removePerson') result = removePerson(e.parameter.date, e.parameter.name);
     else if (action === 'clearSchedule') result = clearScheduleData();
+    else if (action === 'getDates') result = getScheduleDates();
+    else if (action === 'setDates') result = setScheduleDates(e.parameter.dates);
+    else if (action === 'addDate') result = addScheduleDate(e.parameter.date);
+    else if (action === 'removeDate') result = removeScheduleDate(e.parameter.key);
     else if (e.parameter && e.parameter.data) {
       registrarEscala(JSON.parse(e.parameter.data));
       result = { status: 'ok' };
@@ -242,17 +250,75 @@ function periodFromText(periodo) {
 /* ════════════════════════════════════════
    ESCALA — unicidade (data + nome)
    ════════════════════════════════════════ */
+function ensureEscalaHeaders(sheet) {
+  var current = sheet.getRange(1, 1, 1, Math.max(5, sheet.getLastColumn())).getValues()[0];
+  var h3 = String(current[2] || '').trim();
+  if (h3 === 'Lider' || h3 === 'Líder') {
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      var oldData = sheet.getRange(2, 1, lastRow - 1, 3).getValues();
+      sheet.deleteRows(2, lastRow - 1);
+      var migrated = [];
+      for (var i = 0; i < oldData.length; i++) {
+        var date = oldData[i][0];
+        var name = oldData[i][1];
+        var leader = oldData[i][2];
+        if (!date || !name) continue;
+        migrated.push([
+          date,
+          name,
+          isLeaderCell(leader) ? ROLE_LEADER : ROLE_VOLUNTEER,
+          MINISTRY_NAME,
+          isLeaderCell(leader) ? '✓' : ''
+        ]);
+      }
+      sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setValues([ESCALA_HEADERS]);
+      sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setFontWeight('bold');
+      for (var r = 0; r < migrated.length; r++) {
+        var newRow = sheet.getLastRow() + 1;
+        sheet.getRange(newRow, 1).setNumberFormat('@STRING@');
+        sheet.getRange(newRow, 1, 1, ESCALA_HEADERS.length).setValues([migrated[r]]);
+      }
+    } else {
+      sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setValues([ESCALA_HEADERS]);
+      sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setFontWeight('bold');
+    }
+    return;
+  }
+  var needsHeader = String(current[0] || '').trim() !== 'Data'
+    || String(current[2] || '').trim() !== 'Função'
+    || String(current[3] || '').trim() !== 'Ministério';
+  if (needsHeader) {
+    sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setValues([ESCALA_HEADERS]);
+    sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setFontWeight('bold');
+  }
+}
+
+function scheduleRowValues(date, name, isLeader) {
+  return [
+    date,
+    name,
+    isLeader ? ROLE_LEADER : ROLE_VOLUNTEER,
+    MINISTRY_NAME,
+    isLeader ? '✓' : ''
+  ];
+}
+
 function getEscalaSheet() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName('Escala');
   if (!sheet) {
     sheet = ss.insertSheet('Escala');
-    sheet.appendRow(['Data', 'Nome', 'Lider']);
-    sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
-  } else if (String(sheet.getRange(1, 3).getValue() || '').trim() !== 'Lider') {
-    sheet.getRange(1, 3).setValue('Lider').setFontWeight('bold');
+    sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setValues([ESCALA_HEADERS]);
+    sheet.getRange(1, 1, 1, ESCALA_HEADERS.length).setFontWeight('bold');
+  } else {
+    ensureEscalaHeaders(sheet);
   }
   return sheet;
+}
+
+function getLeaderColumnIndex() {
+  return 5;
 }
 
 function isLeaderCell(val) {
@@ -278,6 +344,7 @@ function getScheduleData() {
   var result = {};
   var leaders = {};
   var seen = {};
+  var leaderCol = getLeaderColumnIndex() - 1;
 
   for (var i = 1; i < rows.length; i++) {
     var date = normalizeDate(rows[i][0]);
@@ -290,7 +357,12 @@ function getScheduleData() {
 
     if (!result[date]) result[date] = [];
     result[date].push(name);
-    if (isLeaderCell(rows[i][2]) && !leaders[date]) leaders[date] = name;
+    var leaderVal = rows[i][leaderCol];
+    if (leaderVal === undefined || leaderVal === '') {
+      leaderVal = rows[i][2];
+    }
+    if (isLeaderCell(leaderVal) && !leaders[date]) leaders[date] = name;
+    if (!leaders[date] && String(rows[i][2] || '').trim() === ROLE_LEADER) leaders[date] = name;
   }
   return { schedule: result, leaders: leaders };
 }
@@ -330,27 +402,31 @@ function setScheduleData(schedJson, leadersJson) {
       seen[pairKey] = true;
 
       var isLeader = leaderName && name.toUpperCase() === leaderName.toUpperCase();
-      rows.push([date, name, isLeader ? '✓' : '']);
+      rows.push(scheduleRowValues(date, name, isLeader));
     }
   }
 
-  for (var di = 0; di < SCHEDULE_DATE_KEYS.length; di++) {
-    appendRowsForDateKey(SCHEDULE_DATE_KEYS[di]);
+  var orderedKeys = getScheduleDateKeysOrdered();
+  var used = {};
+  for (var di = 0; di < orderedKeys.length; di++) {
+    used[orderedKeys[di]] = true;
+    appendRowsForDateKey(orderedKeys[di]);
   }
 
   Object.keys(sched).forEach(function(k) {
-    if (SCHEDULE_DATE_KEYS.indexOf(k) !== -1) return;
+    if (used[k]) return;
     appendRowsForDateKey(k);
   });
 
+  var colCount = ESCALA_HEADERS.length;
   for (var r = 0; r < rows.length; r++) {
     var newRow = sheet.getLastRow() + 1;
     sheet.getRange(newRow, 1).setNumberFormat('@STRING@');
-    sheet.getRange(newRow, 1, 1, 3).setValues([rows[r]]);
+    sheet.getRange(newRow, 1, 1, colCount).setValues([rows[r]]);
   }
 
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, colCount).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
 
   return { status: 'ok' };
@@ -371,9 +447,9 @@ function addPerson(date, name) {
   }
   var newRow = sheet.getLastRow() + 1;
   sheet.getRange(newRow, 1).setNumberFormat('@STRING@');
-  sheet.getRange(newRow, 1, 1, 3).setValues([[date, name, '']]);
+  sheet.getRange(newRow, 1, 1, ESCALA_HEADERS.length).setValues([scheduleRowValues(date, name, false)]);
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, ESCALA_HEADERS.length).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
   return { status: 'ok' };
 }
@@ -394,7 +470,7 @@ function removePerson(date, name) {
   if (targetRow === -1) return { status: 'not_found' };
   sheet.deleteRow(targetRow);
   if (sheet.getLastRow() > 2) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, ESCALA_HEADERS.length).sort([{ column: 1, ascending: true }, { column: 2, ascending: true }]);
   }
   return { status: 'ok' };
 }
@@ -404,4 +480,254 @@ function clearScheduleData() {
   var lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
   return { status: 'ok' };
+}
+
+/* ════════════════════════════════════════
+   DATAS DA ESCALA (configuração dinâmica)
+   ════════════════════════════════════════ */
+function getDefaultScheduleDates() {
+  return [
+    { key: '2026-06-03', label: '03/jun', full: '03 de junho', day: 'Quarta',  hora: '18h às 19h30' },
+    { key: '2026-06-06', label: '06/jun', full: '06 de junho', day: 'Sábado',  hora: '10h às 11h30' },
+    { key: '2026-06-20', label: '20/jun', full: '20 de junho', day: 'Sábado',  hora: '10h às 11h30' },
+    { key: '2026-06-24', label: '24/jun', full: '24 de junho', day: 'Quarta',  hora: '18h às 19h30' },
+    { key: '2026-06-28', label: '28/jun', full: '28 de junho', day: 'Domingo', hora: '17h às 18h30' }
+  ];
+}
+
+function isoToShortLabel(iso) {
+  var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return '';
+  var mo = parseInt(m[2], 10);
+  var dy = parseInt(m[3], 10);
+  var abbr = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return dy + '/' + (abbr[mo - 1] || 'jun');
+}
+
+function getDatesSheet() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('DatasEscala');
+  if (!sheet) {
+    sheet = ss.insertSheet('DatasEscala');
+    sheet.getRange(1, 1, 1, 5).setValues([['key', 'label', 'full', 'day', 'hora']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+function isPollutedDateText(val) {
+  var s = String(val || '').trim();
+  if (!s) return false;
+  if (s.length > 36) return true;
+  return /GMT|Horário|Horario|00:00:00|\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/i.test(s);
+}
+
+function cellToCleanText(val) {
+  if (val instanceof Date) return '';
+  var s = String(val || '').trim();
+  if (!s || isPollutedDateText(s)) return '';
+  return s;
+}
+
+function buildDateMetaFromIso(iso, horaOpt) {
+  var parts = String(iso || '').split('-');
+  if (parts.length < 3) return null;
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var d = parseInt(parts[2], 10);
+  if (!y || !m || !d) return null;
+  var dt = new Date(y, m - 1, d);
+  var days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  var months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  var abbr = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  return {
+    label: d + '/' + abbr[m - 1],
+    full: d + ' de ' + months[m - 1],
+    day: days[dt.getDay()],
+    hora: String(horaOpt || '').trim() || '18h às 19h30'
+  };
+}
+
+function sanitizeDateRecord(d) {
+  if (!d) return null;
+  var key = normalizeDate(d.key);
+  if (!key) return null;
+  var meta = buildDateMetaFromIso(key, d.hora);
+  if (!meta) return null;
+  return {
+    key: key,
+    label: cellToCleanText(d.label) || meta.label,
+    full: cellToCleanText(d.full) || meta.full,
+    day: cellToCleanText(d.day) || meta.day,
+    hora: cellToCleanText(d.hora) || meta.hora
+  };
+}
+
+function getScheduleDates() {
+  var sheet = getDatesSheet();
+  var rows = sheet.getDataRange().getValues();
+  var dates = [];
+  for (var i = 1; i < rows.length; i++) {
+    var clean = sanitizeDateRecord({
+      key: rows[i][0],
+      label: rows[i][1],
+      full: rows[i][2],
+      day: rows[i][3],
+      hora: rows[i][4]
+    });
+    if (!clean) continue;
+    dates.push(clean);
+  }
+  if (dates.length === 0) dates = getDefaultScheduleDates();
+  dates.sort(function(a, b) {
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+  });
+  return { dates: dates };
+}
+
+function getScheduleDateKeysOrdered() {
+  return getScheduleDates().dates.map(function(d) { return d.key; });
+}
+
+function findReceivedAtColumn(headers) {
+  for (var h = 0; h < headers.length; h++) {
+    if (String(headers[h] || '').trim().toLowerCase() === 'recebido em') return h + 1;
+  }
+  return RECEIVED_AT_COL;
+}
+
+function ensureDispColumnForDate(isoKey, label) {
+  var aba = getDispSheet();
+  var hdrLabel = label || isoToShortLabel(isoKey);
+  if (!hdrLabel || !isoKey) return;
+
+  var lastCol = Math.max(aba.getLastColumn(), 1);
+  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
+  var recvCol = findReceivedAtColumn(headers);
+
+  for (var h = 1; h < headers.length; h++) {
+    var col = h + 1;
+    if (col === recvCol) continue;
+    var hdr = headers[h];
+    var hdrIso = (hdr instanceof Date)
+      ? normalizeDate(hdr)
+      : normalizeDate(String(hdr || '').trim());
+    if (hdrIso === isoKey) return;
+    if (String(hdr || '').trim().toLowerCase() === hdrLabel.toLowerCase()) return;
+  }
+
+  aba.insertColumnBefore(recvCol);
+  aba.getRange(1, recvCol).setValue(hdrLabel).setNumberFormat('@STRING@');
+}
+
+function setScheduleDates(datesJson) {
+  if (!datesJson) return { status: 'error', msg: 'missing dates' };
+  var dates = JSON.parse(datesJson);
+  if (!Array.isArray(dates)) return { status: 'error', msg: 'invalid dates' };
+
+  var sheet = getDatesSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+
+  var rows = [];
+  for (var i = 0; i < dates.length; i++) {
+    var clean = sanitizeDateRecord(dates[i]);
+    if (!clean) continue;
+    rows.push([clean.key, clean.label, clean.full, clean.day, clean.hora]);
+    ensureDispColumnForDate(clean.key, clean.label);
+  }
+
+  if (rows.length) {
+    sheet.getRange(2, 1, rows.length, 5).setValues(rows);
+    sheet.getRange(2, 1, rows.length, 5).setNumberFormat('@STRING@');
+  }
+  return { status: 'ok', count: rows.length };
+}
+
+function addScheduleDate(dateJson) {
+  if (!dateJson) return { status: 'error', msg: 'missing date' };
+  var incoming = sanitizeDateRecord(JSON.parse(dateJson));
+  if (!incoming || !incoming.key) return { status: 'error', msg: 'invalid date' };
+
+  var existing = getScheduleDates().dates;
+  var key = incoming.key;
+  var found = false;
+  for (var i = 0; i < existing.length; i++) {
+    if (existing[i].key === key) {
+      existing[i] = incoming;
+      found = true;
+      break;
+    }
+  }
+  if (!found) existing.push(incoming);
+  existing.sort(function(a, b) {
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+  });
+  return setScheduleDates(JSON.stringify(existing));
+}
+
+function removeDispColumnForDate(isoKey, label) {
+  var aba = getDispSheet();
+  var hdrLabel = label || isoToShortLabel(isoKey);
+  if (!isoKey) return;
+
+  var lastCol = Math.max(aba.getLastColumn(), 1);
+  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
+  var recvCol = findReceivedAtColumn(headers);
+
+  for (var h = headers.length - 1; h >= 1; h--) {
+    var col = h + 1;
+    if (col === recvCol) continue;
+    var hdr = headers[h];
+    var hdrIso = (hdr instanceof Date)
+      ? normalizeDate(hdr)
+      : normalizeDate(String(hdr || '').trim());
+    if (hdrIso === isoKey || String(hdr || '').trim().toLowerCase() === hdrLabel.toLowerCase()) {
+      aba.deleteColumn(col);
+      return;
+    }
+  }
+}
+
+function removeEscalaRowsForDate(isoKey) {
+  var sheet = getEscalaSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
+
+  var data = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = data.length - 1; i >= 0; i--) {
+    if (normalizeDate(data[i][0]) === isoKey) {
+      sheet.deleteRow(i + 2);
+    }
+  }
+}
+
+function removeScheduleDate(rawKey) {
+  var isoKey = normalizeDate(rawKey);
+  if (!isoKey) return { status: 'error', msg: 'invalid key' };
+
+  var dates = getScheduleDates().dates.filter(function(d) {
+    return d.key !== isoKey;
+  });
+  if (dates.length === 0) {
+    return { status: 'error', msg: 'cannot remove last date' };
+  }
+
+  var sheet = getDatesSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+
+  var rows = [];
+  for (var i = 0; i < dates.length; i++) {
+    rows.push([dates[i].key, dates[i].label, dates[i].full, dates[i].day, dates[i].hora]);
+  }
+  if (rows.length) {
+    sheet.getRange(2, 1, rows.length, 5).setValues(rows);
+    sheet.getRange(2, 1, rows.length, 5).setNumberFormat('@STRING@');
+  }
+
+  removeEscalaRowsForDate(isoKey);
+  removeDispColumnForDate(isoKey, isoToShortLabel(isoKey));
+
+  return { status: 'ok', key: isoKey };
 }

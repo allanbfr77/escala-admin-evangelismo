@@ -238,9 +238,38 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   z-index: 40;
 }
 .action-menu.open .action-menu-dropdown { display: flex; flex-direction: column; gap: 4px; }
+.add-menu { margin-left: 0; }
+.add-menu .action-menu-dropdown { min-width: 200px; }
+.add-menu-item {
+  width: 100%; justify-content: flex-start; text-align: left;
+  background: transparent; border: 1px solid transparent; color: var(--text-2);
+  padding: 8px 10px; min-height: 34px;
+}
+.add-menu-item:hover { border-color: var(--border2); color: var(--green); }
 .stats { display: flex; gap: 10px; flex-wrap: wrap; }
 .stat-pill { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
 .stat-pill .num { font-weight: 700; color: var(--green); }
+
+/* ── RELATÓRIO: ALERTAS POR TURNO ── */
+.schedule-report {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px 18px;
+}
+.schedule-report-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.schedule-report-sub {
+  font-size: 11px; color: var(--text-2); margin-bottom: 14px;
+  line-height: 1.45;
+}
+.shift-alert-block { margin-bottom: 12px; }
+.shift-alert-block:last-child { margin-bottom: 0; }
+.shift-alert-heading {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--amber); margin-bottom: 6px;
+}
+.shift-alert-names { font-size: 12px; color: var(--text); line-height: 1.65; }
+.shift-alert-name { font-weight: 600; color: var(--red); }
+.shift-alert-empty { font-size: 12px; color: var(--text-2); }
+.schedule-report-none { font-size: 12px; color: var(--green); font-weight: 600; }
 
 /* ── DASHBOARD TABLE ── */
 .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; touch-action: manipulation; }
@@ -258,6 +287,15 @@ table.escala thead th .col-day {
   display: block; margin-top: 3px;
   font-size: 10px; line-height: 1.25; word-break: break-word;
 }
+.col-header-wrap { position: relative; display: block; padding-right: 20px; }
+.col-delete-date {
+  position: absolute; top: 0; right: 0;
+  width: 18px; height: 18px; padding: 0;
+  border: none; background: transparent;
+  color: var(--text-3); font-size: 13px; line-height: 1;
+  cursor: pointer; border-radius: 4px;
+}
+.col-delete-date:hover { color: var(--red); background: rgba(248,81,73,.12); }
 table.escala tfoot td {
   padding: 8px 6px; text-align: center; width: 20%;
   font-size: 10px; background: var(--surface2);
@@ -358,6 +396,8 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 
 /* ── AVAILABILITY SECTION ── */
 .avail-section {
+  display: block;
+  flex-shrink: 0;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); overflow: hidden;
 }
@@ -388,8 +428,12 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 .avail-legend-swatch.legend-green { background: var(--green); border-color: var(--green); }
 .avail-legend-swatch.legend-red   { background: var(--red); border-color: var(--red); }
 .avail-body { display: none; padding: 12px 10px 14px; }
-.avail-body.open { display: block; }
-.avail-blocks { display: flex; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+.avail-body.open {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.avail-blocks { display: flex; gap: 6px; flex-wrap: nowrap; min-width: min-content; width: 100%; }
 .avail-block { flex: 1 1 0; min-width: 0; }
 .avail-table {
   width: 100%; border-collapse: collapse;
@@ -473,6 +517,14 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
 }
 .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 49; }
 .sidebar-backdrop.open { display: block; }
+
+@media (min-width: 769px) {
+  .main .main-content .avail-section { display: block; }
+  .main.show-avail .main-content #stats-strip,
+  .main.show-avail .main-content .table-wrap { display: block; }
+  .avail-blocks { flex-wrap: wrap; }
+  .avail-block { flex: 1 1 240px; max-width: 100%; }
+}
 
 @media (max-width: 1024px) {
   .main-content { padding-left: 10px; padding-right: 10px; }
@@ -569,10 +621,10 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
   .name-row { font-size: 13px; padding: 8px 14px; }
   .stat-pill { font-size: 12px; padding: 6px 10px; }
 
-  /* Avail blocks stack */
-  .avail-blocks { flex-direction: column; flex-wrap: wrap; gap: 14px; }
-  .avail-block { flex: 1 1 auto; width: 100%; }
-  .avail-body { padding: 10px 4px 12px; }
+  /* Avail blocks stack — rolagem horizontal na grade */
+  .avail-blocks { flex-direction: column; flex-wrap: nowrap; gap: 14px; min-width: 0; width: 100%; }
+  .avail-block { flex: 0 0 auto; width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .avail-body { padding: 10px 4px 12px; overflow-x: auto; }
   .avail-table { min-width: 0; table-layout: fixed; font-size: 10px; }
   .avail-table th {
     padding: 2px 1px; font-size: 8.5px;
@@ -608,11 +660,6 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
     background: var(--green-glow); color: var(--green);
     box-shadow: inset 0 -2px 0 var(--green);
   }
-
-  /* Section visibility by active tab */
-  .main:not(.show-avail) .main-content .avail-section { display: none; }
-  .main.show-avail .main-content #stats-strip,
-  .main.show-avail .main-content .table-wrap { display: none; }
 
   /* Remove touch on name-row — bigger tap zone for × */
   .name-row .remove { padding: 4px 10px; font-size: 16px; }
@@ -755,6 +802,21 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
             </span>
             <span class="btn-label">Atualizar Dados</span>
           </button>
+          <div class="action-menu add-menu" id="add-menu">
+            <button type="button" class="btn btn-outline btn-action" data-idle-text="+ Adicionar à Escala" onclick="toggleAddMenu(event)" aria-haspopup="true" aria-expanded="false" id="add-menu-btn">
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </span>
+              <span class="btn-label">Adicionar à Escala</span>
+            </button>
+            <div class="action-menu-dropdown" role="menu">
+              <button type="button" class="btn add-menu-item" role="menuitem" onclick="openAddMenuAction('volunteer')">Escalar Voluntário</button>
+              <button type="button" class="btn add-menu-item" role="menuitem" onclick="openAddMenuAction('date')">Criar Nova Data</button>
+            </div>
+          </div>
           <div class="action-menu" id="action-menu">
             <button class="btn btn-outline btn-menu" onclick="toggleActionMenu(event)" aria-label="Mais opções">⋮</button>
             <div class="action-menu-dropdown">
@@ -857,7 +919,46 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
     <div class="modal-dates" id="schedule-modal-dates"></div>
     <div class="modal-actions">
       <button type="button" class="btn btn-modal-cancel" onclick="closeScheduleModal()">Cancelar</button>
-      <button type="button" class="btn btn-modal-confirm" onclick="confirmScheduleModal()">Confirmar</button>
+      <button type="button" class="btn btn-modal-confirm" onclick="confirmScheduleModal()">Confirmar escala</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="create-date-modal" onclick="closeCreateDateModal(event)">
+  <div class="modal-card schedule-modal-card" onclick="event.stopPropagation()">
+    <button type="button" class="modal-close-btn" onclick="closeCreateDateModal()" aria-label="Fechar">×</button>
+    <div class="modal-title">Criar Nova Data</div>
+    <div class="modal-field">
+      <label for="create-date-input">Data</label>
+      <input type="date" class="modal-select" id="create-date-input">
+    </div>
+    <div class="modal-field">
+      <label for="create-date-hora">Horário</label>
+      <input type="text" class="modal-select" id="create-date-hora" placeholder="ex: 18h às 19h30" value="18h às 19h30">
+    </div>
+    <div class="modal-text" id="create-date-preview"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-modal-cancel" onclick="closeCreateDateModal()">Cancelar</button>
+      <button type="button" class="btn btn-modal-confirm" onclick="confirmCreateDate()">Criar data</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-schedule-modal" onclick="closeAddScheduleModal(event)">
+  <div class="modal-card schedule-modal-card" onclick="event.stopPropagation()">
+    <button type="button" class="modal-close-btn" onclick="closeAddScheduleModal()" aria-label="Fechar">×</button>
+    <div class="modal-title">Adicionar à Escala</div>
+    <div class="modal-field">
+      <label for="add-schedule-person">Voluntário</label>
+      <select class="modal-select" id="add-schedule-person"></select>
+    </div>
+    <div class="modal-field">
+      <label for="add-schedule-date">Data</label>
+      <select class="modal-select" id="add-schedule-date"></select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-modal-cancel" onclick="closeAddScheduleModal()">Cancelar</button>
+      <button type="button" class="btn btn-modal-confirm" onclick="confirmAddToSchedule()">Confirmar escala</button>
     </div>
   </div>
 </div>
@@ -870,13 +971,20 @@ var ADMIN_PASS = 'medeiros';
 
 /* key  → ISO 8601 (único identificador interno, enviado à API e ao localStorage)
    label → string de exibição PT-BR (interface visual, cabeçalhos, painel) */
-var GROUP_DATES = [
+var DEFAULT_GROUP_DATES = [
   { key: '2026-06-03', label: '03/jun', full: '03 de junho', day: 'Quarta',  hora: '18h às 19h30' },
   { key: '2026-06-06', label: '06/jun', full: '06 de junho', day: 'Sábado',  hora: '10h às 11h30' },
   { key: '2026-06-20', label: '20/jun', full: '20 de junho', day: 'Sábado',  hora: '10h às 11h30'  },
   { key: '2026-06-24', label: '24/jun', full: '24 de junho', day: 'Quarta',  hora: '18h às 19h30' },
   { key: '2026-06-28', label: '28/jun', full: '28 de junho', day: 'Domingo', hora: '17h às 18h30' },
 ];
+var MONTH_ABBR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+var MONTHS_PT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var WEEKDAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+var DAY_SHORT = { Domingo:'Dom', Segunda:'Seg', Terça:'Ter', Quarta:'Qua', Quinta:'Qui', Sexta:'Sex', Sábado:'Sáb' };
+var GROUP_DATES = DEFAULT_GROUP_DATES.map(function(d) {
+  return sanitizeDateEntry(d);
+}).filter(Boolean);
 
 var HIGHLIGHT_MEMBERS = [
   'LUCIANE MARTINS', 'VANESSA ROCHA', 'BIANCA M.', 'MARCIO SANTOS',
@@ -895,10 +1003,159 @@ var MEMBERS = [
 var memberData = {};
 var schedule = {};
 var scheduleLeaders = {}; /* líder por data — persistido na aba Escala (coluna Lider) */
-GROUP_DATES.forEach(function(d){ schedule[d.key] = []; });
+
+function isPollutedDateText(s) {
+  var t = String(s || '').trim();
+  if (!t) return false;
+  if (t.length > 36) return true;
+  return /GMT|Horário|Horario|00:00:00|\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/i.test(t);
+}
+
+function resolveDateKey(raw) {
+  if (raw == null || raw === '') return null;
+  if (typeof raw === 'object' && raw.key) return resolveDateKey(raw.key);
+  var s = String(raw).trim();
+  if (isValidIsoDate(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    var isoPart = s.slice(0, 10);
+    if (isValidIsoDate(isoPart)) return isoPart;
+  }
+  return formatDateForCode(s);
+}
+
+function sanitizeDateEntry(d) {
+  if (!d) return null;
+  var key = resolveDateKey(d.key != null ? d.key : d);
+  if (!key) return null;
+  var built = buildDateEntryFromIso(key, d.hora);
+  function pickField(val, fallback) {
+    var s = String(val || '').trim();
+    if (!s || isPollutedDateText(s)) return fallback;
+    return s;
+  }
+  return {
+    key: key,
+    label: pickField(d.label, built.label),
+    full: pickField(d.full, built.full),
+    day: pickField(d.day, built.day),
+    hora: pickField(d.hora, built.hora)
+  };
+}
+
+function getDisplayDateEntry(d) {
+  return sanitizeDateEntry(d) || d;
+}
+
+function formatScheduleColPrimary(d) {
+  var e = getDisplayDateEntry(d);
+  var p = e.key.split('-');
+  return e.day + ', ' + p[2] + '/' + p[1];
+}
+
+function formatScheduleColSecondary(d) {
+  var e = getDisplayDateEntry(d);
+  return e.day + ' · ' + e.hora;
+}
+
+function formatAvailColHeader(d) {
+  var e = getDisplayDateEntry(d);
+  var p = e.key.split('-');
+  var shortDay = DAY_SHORT[e.day] || e.day.slice(0, 3);
+  return shortDay + ' ' + p[2] + '/' + p[1];
+}
+
+function cloneDateEntry(d) {
+  var s = sanitizeDateEntry(d);
+  return s ? { key: s.key, label: s.label, full: s.full, day: s.day, hora: s.hora } : null;
+}
+
+function sortGroupDates() {
+  GROUP_DATES.sort(function(a, b) {
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+  });
+}
+
+function ensureScheduleSlots() {
+  GROUP_DATES.forEach(function(d) {
+    if (!Array.isArray(schedule[d.key])) schedule[d.key] = [];
+  });
+}
+
+function findGroupDateByKey(key) {
+  for (var i = 0; i < GROUP_DATES.length; i++) {
+    if (GROUP_DATES[i].key === key) return GROUP_DATES[i];
+  }
+  return null;
+}
+
+function isValidIsoDate(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  var p = s.split('-');
+  var dt = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+  return dt.getFullYear() === parseInt(p[0], 10)
+    && dt.getMonth() === parseInt(p[1], 10) - 1
+    && dt.getDate() === parseInt(p[2], 10);
+}
+
+function buildDateEntryFromIso(iso, hora) {
+  var p = iso.split('-');
+  var yr = parseInt(p[0], 10);
+  var mo = parseInt(p[1], 10);
+  var dy = parseInt(p[2], 10);
+  var dt = new Date(yr, mo - 1, dy);
+  return {
+    key: iso,
+    label: dy + '/' + (MONTH_ABBR[mo - 1] || 'jun'),
+    full: dy + ' de ' + (MONTHS_PT[mo - 1] || 'junho'),
+    day: WEEKDAYS_PT[dt.getDay()],
+    hora: String(hora || '').trim() || '18h às 19h30'
+  };
+}
+
+function applyGroupDates(dates) {
+  if (!Array.isArray(dates) || !dates.length) return;
+  var map = {};
+  GROUP_DATES.forEach(function(d) {
+    var clean = sanitizeDateEntry(d);
+    if (clean) map[clean.key] = clean;
+  });
+  dates.forEach(function(d) {
+    var clean = sanitizeDateEntry(d);
+    if (!clean) return;
+    map[clean.key] = clean;
+  });
+  GROUP_DATES = Object.keys(map).map(function(k) { return map[k]; });
+  sortGroupDates();
+  ensureScheduleSlots();
+}
+
+function mergeUnknownScheduleKeys(sched) {
+  if (!sched || typeof sched !== 'object') return;
+  Object.keys(sched).forEach(function(rawKey) {
+    var key = resolveDateKey(rawKey);
+    if (!key || findGroupDateByKey(key)) return;
+    var unknownEntry = sanitizeDateEntry(buildDateEntryFromIso(key));
+    if (unknownEntry) GROUP_DATES.push(unknownEntry);
+    schedule[key] = schedule[key] || [];
+  });
+  sortGroupDates();
+  ensureScheduleSlots();
+}
+
+function normalizeIsoDate(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim();
+  if (!isValidIsoDate(s)) return null;
+  return s;
+}
+
+ensureScheduleSlots();
 var selectedPerson = null;
 var scheduleModalPerson = null;
 var scheduleModalDraft = {};
+var MINISTRY_NAME = 'Evangelismo & Integração';
+var ROLE_VOLUNTEER = 'Voluntário';
+var ROLE_LEADER = 'Líder';
 
 /* ── PERSISTÊNCIA LOCAL (cache / fallback) ── */
 var STORAGE_KEY     = 'escala_evangelismo_junho2026_v2'; // v2 = chaves ISO 8601
@@ -907,7 +1164,7 @@ var SHEET_CACHE_KEY = 'escala_sheet_cache_junho2026';
 
 function saveSchedule() {
   try {
-    var payload = { schedule: {}, leaders: scheduleLeaders };
+    var payload = { schedule: {}, leaders: scheduleLeaders, groupDates: GROUP_DATES };
     GROUP_DATES.forEach(function(d) { payload.schedule[d.key] = schedule[d.key]; });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch(e) {}
@@ -917,7 +1174,7 @@ function loadScheduleLeadersFromObject(leadersObj) {
   scheduleLeaders = {};
   if (!leadersObj || typeof leadersObj !== 'object') return;
   Object.keys(leadersObj).forEach(function(rawKey) {
-    var key = formatDateForCode(rawKey);
+    var key = formatDateForCode(rawKey) || normalizeIsoDate(rawKey);
     var name = String(leadersObj[rawKey] || '').trim();
     if (key && name) scheduleLeaders[key] = name;
   });
@@ -928,7 +1185,10 @@ function loadSchedule() {
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       var parsed = JSON.parse(saved);
+      if (parsed.groupDates && parsed.groupDates.length) applyGroupDates(parsed.groupDates);
+      else GROUP_DATES = GROUP_DATES.map(sanitizeDateEntry).filter(Boolean);
       var schedData = parsed.schedule || parsed;
+      mergeUnknownScheduleKeys(schedData);
       GROUP_DATES.forEach(function(d) {
         if (Array.isArray(schedData[d.key])) schedule[d.key] = schedData[d.key];
       });
@@ -967,26 +1227,32 @@ function setSaveStatus(state) {
 function formatDateForCode(raw) {
   if (!raw) return null;
   var s = String(raw).trim();
+  var hit = findGroupDateByKey(s);
+  if (hit) return hit.key;
 
-  // 1) Já está em ISO "YYYY-MM-DD"
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    return GROUP_DATES.some(function(g){ return g.key === s; }) ? s : null;
+  // 1) ISO "YYYY-MM-DD" ou prefixo de ISO datetime
+  if (isValidIsoDate(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    var isoPart = s.slice(0, 10);
+    if (isValidIsoDate(isoPart)) return isoPart;
   }
 
-  // 2) Formato legado "03/jun" ou "06/Jun"
-  var mLeg = s.match(/^(\d{1,2})\/jun$/i);
+  // 2) Label cadastrado (ex: "17/jun")
+  for (var i = 0; i < GROUP_DATES.length; i++) {
+    if (GROUP_DATES[i].label.toLowerCase() === s.toLowerCase()) return GROUP_DATES[i].key;
+  }
+
+  // 3) Formato legado "03/jun"
+  var mLeg = s.match(/^(\d{1,2})\/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)$/i);
   if (mLeg) {
     var dd = parseInt(mLeg[1], 10);
-    var hit = null;
-    GROUP_DATES.forEach(function(g) {
-      if (parseInt(g.key.split('-')[2], 10) === dd) hit = g.key;
-    });
-    return hit;
+    var mon = mLeg[2].toLowerCase();
+    for (var j = 0; j < GROUP_DATES.length; j++) {
+      if (GROUP_DATES[j].label.toLowerCase() === dd + '/' + mon) return GROUP_DATES[j].key;
+    }
   }
 
-  // 3) String no formato "Sat May 09 2026 ..." gerada pelo Google Sheets
-  //    — extrai mês/dia/ano via regex para evitar falha em browsers com
-  //    caracteres não-ASCII no nome do fuso (ex: "Horário Padrão de Brasília")
+  // 4) String "Sat May 09 2026 ..." do Google Sheets
   var MON = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,
               sep:9,oct:10,nov:11,dec:12 };
   var mStr = s.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{4})\b/i);
@@ -995,8 +1261,7 @@ function formatDateForCode(raw) {
     var dy = parseInt(mStr[2], 10);
     var yr = parseInt(mStr[3], 10);
     if (mo && dy && yr) {
-      var iso = yr + '-' + (mo < 10 ? '0'+mo : mo) + '-' + (dy < 10 ? '0'+dy : dy);
-      return GROUP_DATES.some(function(g){ return g.key === iso; }) ? iso : null;
+      return yr + '-' + (mo < 10 ? '0' + mo : mo) + '-' + (dy < 10 ? '0' + dy : dy);
     }
   }
 
@@ -1029,12 +1294,19 @@ function loadScheduleFromSheet() {
       if (!data || data.error || typeof data !== 'object') return;
       var sched = data.schedule || data;
       var leaders = data.leaders || {};
+      mergeUnknownScheduleKeys(sched);
       GROUP_DATES.forEach(function(d) { schedule[d.key] = []; });
       Object.keys(sched).forEach(function(rawKey) {
-        var key = formatDateForCode(rawKey);
+        var key = formatDateForCode(rawKey) || normalizeIsoDate(rawKey);
         if (!key || !Array.isArray(sched[rawKey])) return;
+        if (!findGroupDateByKey(key)) {
+          var sheetEntry = sanitizeDateEntry(buildDateEntryFromIso(key));
+          if (sheetEntry) GROUP_DATES.push(sheetEntry);
+        }
         schedule[key] = sched[rawKey].slice();
       });
+      sortGroupDates();
+      ensureScheduleSlots();
       loadScheduleLeadersFromObject(leaders);
       dedupeScheduleEntries();
       GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
@@ -1145,6 +1417,12 @@ function syncToSheet() {
   }, SYNC_DEBOUNCE_MS);
 }
 
+function flushSyncToSheet() {
+  clearTimeout(_syncDebounceTimer);
+  _syncDebounceTimer = null;
+  enqueueSyncToSheet();
+}
+
 function saveSession()  { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e) {} }
 function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {} }
 function hasSession()   { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch(e) { return false; } }
@@ -1168,8 +1446,10 @@ function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   loadSchedule();           // renderização imediata via cache local
+  loadDatesFromSheet();       // datas dinâmicas da planilha
   loadSheet();              // carrega disponibilidades do servidor
   loadScheduleFromSheet();  // sobrescreve escala com dados do servidor
+  resetAvailSectionVisibility();
   if (window.innerWidth <= 768) switchTab('escala');
 }
 
@@ -1282,8 +1562,44 @@ function loadSheetViaJsonp() {
 }
 
 function reloadSheet() {
+  loadDatesFromSheet();
   loadSheet();
   loadScheduleFromSheet();
+}
+
+function persistDatesToSheet(onDone) {
+  if (!window.fetch) {
+    if (typeof onDone === 'function') onDone(false);
+    return;
+  }
+  var url = SCRIPT_URL
+    + '?action=setDates'
+    + '&dates=' + encodeURIComponent(JSON.stringify(GROUP_DATES))
+    + '&t=' + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.error) throw new Error(data.error);
+      if (typeof onDone === 'function') onDone(true);
+    })
+    .catch(function() {
+      if (typeof onDone === 'function') onDone(false);
+    });
+}
+
+function loadDatesFromSheet() {
+  if (!window.fetch) return;
+  fetch(SCRIPT_URL + '?action=getDates&t=' + Date.now(), { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data || data.error || !Array.isArray(data.dates) || !data.dates.length) return;
+      applyGroupDates(data.dates);
+      GROUP_DATES = GROUP_DATES.map(sanitizeDateEntry).filter(Boolean);
+      sortGroupDates();
+      saveSchedule();
+      renderAll();
+    })
+    .catch(function() {});
 }
 
 function useFallback() {
@@ -1355,7 +1671,7 @@ function renderSidebar() {
   var count = 0;
   MEMBERS.forEach(function(name) {
     if (filter && !name.toLowerCase().includes(filter)) return;
-    if (!memberData[name] || memberData[name].dates.length === 0) return;
+    if (!memberData[name] || !memberData[name].dates || memberData[name].dates.length === 0) return;
     count++;
     var isAlloc = GROUP_DATES.filter(function(d){ return schedule[d.key].includes(name); }).length;
     var total   = memberData[name].dates.length;
@@ -1394,12 +1710,12 @@ function clearSelection() {
 function renderPanel() {}
 
 function openScheduleModal(name) {
-  if (!memberData[name] || !memberData[name].dates || memberData[name].dates.length === 0) return;
+  if (!name || MEMBERS.indexOf(name) === -1) return;
   selectedPerson = name;
   scheduleModalPerson = name;
   scheduleModalDraft = {};
-  memberData[name].dates.forEach(function(dk) {
-    scheduleModalDraft[dk] = schedule[dk].indexOf(name) > -1;
+  GROUP_DATES.forEach(function(d) {
+    scheduleModalDraft[d.key] = schedule[d.key].indexOf(name) > -1;
   });
   var modal = document.getElementById('schedule-modal');
   if (!modal) return;
@@ -1426,18 +1742,13 @@ function renderScheduleModal() {
   if (!titleEl || !datesDiv || !scheduleModalPerson) return;
   titleEl.textContent = scheduleModalPerson;
   titleEl.classList.toggle('highlight', isHighlightMember(scheduleModalPerson));
-  var dateOrder = GROUP_DATES.map(function(d){ return d.key; });
-  var dates = (memberData[scheduleModalPerson].dates || [])
-    .slice()
-    .sort(function(a, b){ return dateOrder.indexOf(a) - dateOrder.indexOf(b); });
   datesDiv.innerHTML = '';
-  dates.forEach(function(dk) {
-    var dObj = GROUP_DATES.find(function(d){ return d.key === dk; });
-    if (!dObj) return;
+  GROUP_DATES.forEach(function(dObj) {
+    var dk = dObj.key;
     var allocated = !!scheduleModalDraft[dk];
     var btn = document.createElement('div');
     btn.className = 'panel-date-btn' + (allocated ? ' allocated' : '');
-    btn.innerHTML = '<span>' + dObj.day + ', ' + dObj.full + ' · ' + dObj.hora + '</span><span>' + (allocated ? '✓' : '+') + '</span>';
+    btn.innerHTML = '<span>' + formatScheduleColPrimary(dObj) + ' · ' + getDisplayDateEntry(dObj).hora + '</span><span>' + (allocated ? '✓' : '+') + '</span>';
     btn.onclick = function() { toggleScheduleModalDate(dk); };
     datesDiv.appendChild(btn);
   });
@@ -1466,7 +1777,103 @@ function confirmScheduleModal() {
   scheduleModalDraft = {};
   selectedPerson = null;
   renderAll();
-  syncToSheet();
+  flushSyncToSheet();
+}
+
+function openCreateDateModal() {
+  var dateInp = document.getElementById('create-date-input');
+  var horaInp = document.getElementById('create-date-hora');
+  if (!dateInp) return;
+  if (!dateInp.value) dateInp.value = '2026-06-17';
+  if (horaInp && !horaInp.value) horaInp.value = '18h às 19h30';
+  updateCreateDatePreview();
+  dateInp.onchange = updateCreateDatePreview;
+  if (horaInp) horaInp.oninput = updateCreateDatePreview;
+  var modal = document.getElementById('create-date-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function updateCreateDatePreview() {
+  var dateInp = document.getElementById('create-date-input');
+  var horaInp = document.getElementById('create-date-hora');
+  var preview = document.getElementById('create-date-preview');
+  if (!dateInp || !preview) return;
+  var iso = dateInp.value;
+  if (!isValidIsoDate(iso)) {
+    preview.textContent = 'Selecione uma data válida.';
+    return;
+  }
+  var entry = buildDateEntryFromIso(iso, horaInp ? horaInp.value : '');
+  preview.textContent = formatScheduleColPrimary(entry) + ' · ' + entry.hora;
+}
+
+function closeCreateDateModal(evt) {
+  if (evt && evt.target && evt.target.id !== 'create-date-modal') return;
+  var modal = document.getElementById('create-date-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function confirmCreateDate() {
+  var dateInp = document.getElementById('create-date-input');
+  var horaInp = document.getElementById('create-date-hora');
+  if (!dateInp) return;
+  var iso = dateInp.value;
+  if (!isValidIsoDate(iso)) {
+    openAlertDialog('Data inválida', 'Informe uma data válida para criar o novo dia na escala.');
+    return;
+  }
+  if (findGroupDateByKey(iso)) {
+    openAlertDialog('Data existente', 'Esta data já faz parte da escala.');
+    return;
+  }
+  var entry = sanitizeDateEntry(buildDateEntryFromIso(iso, horaInp ? horaInp.value : ''));
+  GROUP_DATES.push(entry);
+  sortGroupDates();
+  schedule[iso] = schedule[iso] || [];
+  saveSchedule();
+  closeCreateDateModal();
+  renderAll();
+  setSaveStatus('saving');
+  persistDatesToSheet(function(ok) {
+    if (!ok) setSaveStatus('error');
+    else setSaveStatus('ok');
+  });
+}
+
+function openAddScheduleModal() {
+  var personSel = document.getElementById('add-schedule-person');
+  var dateSel = document.getElementById('add-schedule-date');
+  if (!personSel || !dateSel) return;
+  personSel.innerHTML = MEMBERS.map(function(n) {
+    return '<option value="' + n + '">' + n + '</option>';
+  }).join('');
+  dateSel.innerHTML = GROUP_DATES.map(function(d) {
+    return '<option value="' + d.key + '">' + formatScheduleColPrimary(d) + ' · ' + getDisplayDateEntry(d).hora + '</option>';
+  }).join('');
+  var modal = document.getElementById('add-schedule-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeAddScheduleModal(evt) {
+  if (evt && evt.target && evt.target.id !== 'add-schedule-modal') return;
+  var modal = document.getElementById('add-schedule-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function confirmAddToSchedule() {
+  var personSel = document.getElementById('add-schedule-person');
+  var dateSel = document.getElementById('add-schedule-date');
+  if (!personSel || !dateSel) return;
+  var name = String(personSel.value || '').trim();
+  var dateKey = String(dateSel.value || '').trim();
+  if (!name || !dateKey || !schedule[dateKey]) return;
+  if (schedule[dateKey].indexOf(name) === -1) schedule[dateKey].push(name);
+  dedupeScheduleEntries();
+  applyDateDisplayOrder(dateKey);
+  saveSchedule();
+  closeAddScheduleModal();
+  renderAll();
+  flushSyncToSheet();
 }
 
 /* ── TABLE ── */
@@ -1805,7 +2212,10 @@ function renderTable() {
   var body = document.getElementById('escala-body');
   var foot = document.getElementById('escala-foot');
   head.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
-    return '<th><span class="col-date">' + d.full + '</span><span class="col-day">' + d.day + ' · ' + d.hora + '</span></th>';
+    return '<th><div class="col-header-wrap">'
+      + '<button type="button" class="col-delete-date" data-date-key="' + d.key + '" aria-label="Excluir data">×</button>'
+      + '<span class="col-date">' + formatScheduleColPrimary(d) + '</span>'
+      + '<span class="col-day">' + formatScheduleColSecondary(d) + '</span></div></th>';
   }).join('') + '</tr>';
   foot.innerHTML = '<tr>' + GROUP_DATES.map(function(d){
     var count = schedule[d.key].length;
@@ -1814,7 +2224,8 @@ function renderTable() {
   var html = '<tr>';
   GROUP_DATES.forEach(function(d) {
     var count = schedule[d.key].length;
-    html += '<td data-label="' + d.day + ' · ' + d.full + ' · ' + d.hora + '"><div class="slot-cell" data-date-key="' + d.key + '">';
+    var disp = getDisplayDateEntry(d);
+    html += '<td data-label="' + formatScheduleColPrimary(d) + ' · ' + disp.hora + '"><div class="slot-cell" data-date-key="' + d.key + '">';
     schedule[d.key].forEach(function(name, i) {
       var z = i % 2 === 0 ? 'zebra-even' : 'zebra-odd';
       var isLeader = scheduleLeaders[d.key] === name;
@@ -1830,6 +2241,88 @@ function renderTable() {
   body.innerHTML = html + '</tr>';
   bindTableDnD();
   bindTableLeaderDblClick();
+  bindTableDeleteDate();
+}
+
+var deleteDateBound = false;
+function bindTableDeleteDate() {
+  if (deleteDateBound) return;
+  deleteDateBound = true;
+  var head = document.getElementById('escala-head');
+  if (!head) return;
+  head.addEventListener('click', function(evt) {
+    var btn = evt.target.closest('.col-delete-date');
+    if (!btn) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    var dateKey = btn.getAttribute('data-date-key');
+    if (dateKey) promptDeleteDate(dateKey);
+  });
+}
+
+function promptDeleteDate(dateKey) {
+  var entry = findGroupDateByKey(dateKey);
+  if (!entry) return;
+  if (GROUP_DATES.length <= 1) {
+    openAlertDialog('Exclusão não permitida', 'É necessário manter pelo menos uma data na escala.');
+    return;
+  }
+  var label = formatScheduleColPrimary(entry);
+  openConfirmDialog({
+    title: 'Excluir data',
+    message: 'Tem certeza que deseja excluir a data "' + label + '" e todas as escalas vinculadas a ela?',
+    confirmText: 'Excluir',
+    danger: true,
+    onConfirm: function() { executeDeleteDate(dateKey); }
+  });
+}
+
+function persistDatesToSheetPromise() {
+  return new Promise(function(resolve, reject) {
+    if (!window.fetch) {
+      reject(new Error('fetch indisponivel'));
+      return;
+    }
+    var url = SCRIPT_URL
+      + '?action=setDates'
+      + '&dates=' + encodeURIComponent(JSON.stringify(GROUP_DATES))
+      + '&t=' + Date.now();
+    fetch(url, { cache: 'no-store' })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.error) throw new Error(String(data.error));
+        resolve(data);
+      })
+      .catch(reject);
+  });
+}
+
+function executeDeleteDate(dateKey) {
+  GROUP_DATES = GROUP_DATES.filter(function(d) { return d.key !== dateKey; });
+  delete schedule[dateKey];
+  delete scheduleLeaders[dateKey];
+  sortGroupDates();
+  dedupeScheduleEntries();
+  saveSchedule();
+  renderAll();
+  setSaveStatus('saving');
+  var removeUrl = SCRIPT_URL
+    + '?action=removeDate'
+    + '&key=' + encodeURIComponent(dateKey)
+    + '&t=' + Date.now();
+  fetch(removeUrl, { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.error) throw new Error(String(data.error));
+      return persistDatesToSheetPromise();
+    })
+    .then(function() {
+      flushSyncToSheet();
+    })
+    .catch(function() {
+      setSaveStatus('error');
+      openAlertDialog('Erro ao excluir', 'Não foi possível remover a data na planilha. Tente novamente ou use Atualizar Dados.');
+    });
 }
 
 function toggleAlloc(name, dk) {
@@ -1864,7 +2357,7 @@ function toggleAvail() {
 function renderAvailGrid() {
   var container = document.getElementById('avail-blocks');
   if (!container) return;
-  var dayNums = GROUP_DATES.map(function(d){ return d.label.split('/')[0]; });
+  var dayNums = GROUP_DATES.map(function(d){ return formatAvailColHeader(d); });
   var chunks = [];
   for (var i = 0; i < MEMBERS.length; i += 11) chunks.push(MEMBERS.slice(i, i + 11));
   var html = '';
@@ -1908,21 +2401,25 @@ function renderStats() {
 }
 
 /* ── MOBILE TABS ── */
+function resetAvailSectionVisibility() {
+  var main = document.querySelector('.main');
+  var statsEl = document.getElementById('stats-strip');
+  var tableEl = document.getElementById('capture-area');
+  var availEl = document.querySelector('.avail-section');
+  if (main) main.classList.remove('show-avail');
+  if (statsEl) statsEl.style.display = '';
+  if (tableEl) tableEl.style.display = '';
+  if (availEl) availEl.style.display = '';
+}
+
 function switchTab(tab) {
-  var main      = document.querySelector('.main');
   var tabEscala = document.getElementById('tab-escala');
   var tabAvail  = document.getElementById('tab-avail');
-  var statsEl   = document.getElementById('stats-strip');
-  var tableEl   = document.getElementById('capture-area');
-  var availEl   = document.querySelector('.avail-section');
+  resetAvailSectionVisibility();
 
   if (tab === 'avail') {
-    main.classList.add('show-avail');
     tabEscala.classList.remove('active');
     tabAvail.classList.add('active');
-    statsEl.style.display  = 'none';
-    tableEl.style.display  = 'none';
-    availEl.style.display  = 'block';
     if (!availOpen) {
       availOpen = true;
       document.getElementById('avail-header').classList.add('open');
@@ -1930,13 +2427,17 @@ function switchTab(tab) {
       document.getElementById('avail-eye-icon').innerHTML =
         '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
     }
+    var availEl = document.querySelector('.avail-section');
+    if (availEl && window.innerWidth <= 768) {
+      availEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } else {
-    main.classList.remove('show-avail');
     tabEscala.classList.add('active');
     tabAvail.classList.remove('active');
-    statsEl.style.display  = '';
-    tableEl.style.display  = '';
-    availEl.style.display  = 'none';
+    var tableEl = document.getElementById('capture-area');
+    if (tableEl && window.innerWidth <= 768) {
+      tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }
 
@@ -1989,8 +2490,33 @@ function closeActionMenu() {
   if (menu) menu.classList.remove('open');
 }
 
+function closeAddMenu() {
+  var menu = document.getElementById('add-menu');
+  var btn = document.getElementById('add-menu-btn');
+  if (menu) menu.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleAddMenu(evt) {
+  if (evt) evt.stopPropagation();
+  closeActionMenu();
+  var menu = document.getElementById('add-menu');
+  var btn = document.getElementById('add-menu-btn');
+  if (!menu) return;
+  var open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function openAddMenuAction(action) {
+  closeAddMenu();
+  if (action === 'volunteer') openAddScheduleModal();
+  else if (action === 'date') openCreateDateModal();
+}
+
 function toggleActionMenu(evt) {
   if (evt) evt.stopPropagation();
+  closeAddMenu();
   var menu = document.getElementById('action-menu');
   if (menu) menu.classList.toggle('open');
 }
@@ -2147,22 +2673,28 @@ function clearAll() {
 function doDownload() {
   return new Promise(function(resolve, reject) {
     showLoading('Gerando imagem...');
+    var colCount = GROUP_DATES.length;
+    var exportWidth = Math.max(900, colCount * 175 + 104);
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;padding:48px 52px;background:#f8f9fb;font-family:DM Sans,Arial,sans-serif;color:#0f172a;';
-    var dayMap = { 'Quarta': 'QUARTA-FEIRA', 'Sábado': 'SÁBADO', 'Domingo': 'DOMINGO' };
+    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + exportWidth + 'px;padding:48px 52px;background:#f8f9fb;font-family:DM Sans,Arial,sans-serif;color:#0f172a;';
+    var dayMap = {
+      'Domingo': 'DOMINGO', 'Segunda': 'SEGUNDA-FEIRA', 'Terça': 'TERÇA-FEIRA',
+      'Quarta': 'QUARTA-FEIRA', 'Quinta': 'QUINTA-FEIRA', 'Sexta': 'SEXTA-FEIRA', 'Sábado': 'SÁBADO'
+    };
     var bd = '#cbd5e1';
     var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
       + '<div style="font-size:13px;font-weight:700;letter-spacing:1.5px;color:#6b7a99;text-transform:uppercase;">MINISTÉRIO DE EVANGELISMO & INTEGRAÇÃO</div>'
       + '<div style="font-size:13px;font-weight:600;color:#6b7a99;letter-spacing:1px;">JUNHO 2026</div></div>'
       + '<div style="height:2px;background:' + bd + ';margin-bottom:28px;"></div>'
-      + '<table style="width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid ' + bd + ';"><thead><tr>';
+      + '<table style="width:100%;min-width:' + (colCount * 155) + 'px;border-collapse:collapse;table-layout:fixed;border:1px solid ' + bd + ';"><thead><tr>';
     GROUP_DATES.forEach(function(d) {
-      var dayLabel  = dayMap[d.day] || d.day.toUpperCase();
-      var dateLabel = d.full;
+      var e = getDisplayDateEntry(d);
+      var dayLabel  = dayMap[e.day] || e.day.toUpperCase();
+      var dateLabel = e.full;
       html += '<th style="padding:14px 12px;background:#fff;border:1px solid ' + bd + ';text-align:center;vertical-align:top;">'
         + '<div style="font-size:11px;font-weight:700;color:#5b6fa8;letter-spacing:.8px;margin-bottom:4px;">' + dayLabel + '</div>'
         + '<div style="font-size:16px;font-weight:800;color:#0f172a;margin-bottom:4px;">' + dateLabel + '</div>'
-        + '<div style="font-size:11px;color:#000000;font-weight:600;">' + d.hora + '</div></th>';
+        + '<div style="font-size:11px;color:#000000;font-weight:600;">' + e.hora + '</div></th>';
     });
     html += '</tr></thead><tbody><tr>';
     GROUP_DATES.forEach(function(d) {
@@ -2203,8 +2735,13 @@ function doDownload() {
 
 document.addEventListener('click', function(evt) {
   var menu = document.getElementById('action-menu');
-  if (!menu) return;
-  if (!menu.contains(evt.target)) closeActionMenu();
+  if (menu && !menu.contains(evt.target)) closeActionMenu();
+  var addMenu = document.getElementById('add-menu');
+  if (addMenu && !addMenu.contains(evt.target)) closeAddMenu();
+});
+
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) resetAvailSectionVisibility();
 });
 </script>
 </body>
