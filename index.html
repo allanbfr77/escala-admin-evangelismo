@@ -1153,6 +1153,7 @@ ensureScheduleSlots();
 var selectedPerson = null;
 var scheduleModalPerson = null;
 var scheduleModalDraft = {};
+var scheduleModalOnlyAvailable = false;
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
 var ROLE_LEADER = 'Líder';
@@ -1690,14 +1691,42 @@ function renderSidebar() {
       + '<div class="person-meta">'
       + '<span class="person-flag" aria-hidden="true"' + (flagInner ? ' title="Destaque"' : '') + '>' + flagInner + '</span>'
       + '<div class="person-count">' + isAlloc + '/' + total + '</div></div>';
-    div.onclick = function(){ selectPerson(name); };
+    div.onclick = function(){ selectPersonFromSidebar(name); };
     list.appendChild(div);
   });
   document.getElementById('sb-count').textContent = count;
 }
 
-function selectPerson(name) {
-  openScheduleModal(name);
+function getMemberAvailableDateKeys(name) {
+  var data = memberData[name];
+  if (!data || !Array.isArray(data.dates) || data.dates.length === 0) return [];
+  var dateOrder = GROUP_DATES.map(function(d) { return d.key; });
+  var seen = {};
+  var keys = [];
+  data.dates.forEach(function(dk) {
+    if (!dk || seen[dk]) return;
+    seen[dk] = true;
+    keys.push(dk);
+  });
+  keys.sort(function(a, b) {
+    var ia = dateOrder.indexOf(a);
+    var ib = dateOrder.indexOf(b);
+    if (ia === -1 && ib === -1) return a < b ? -1 : a > b ? 1 : 0;
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+  return keys;
+}
+
+function selectPersonFromSidebar(name) {
+  openScheduleModal(name, { onlyAvailable: true });
+}
+
+function selectPersonFromAvailGrid(name) {
+  selectedPerson = name;
+  renderSidebar();
+  renderAvailGrid();
 }
 
 function clearSelection() {
@@ -1709,14 +1738,34 @@ function clearSelection() {
 
 function renderPanel() {}
 
-function openScheduleModal(name) {
+function openScheduleModal(name, opts) {
+  opts = opts || {};
+  var onlyAvailable = !!opts.onlyAvailable;
   if (!name || MEMBERS.indexOf(name) === -1) return;
+
+  if (onlyAvailable) {
+    var availKeys = getMemberAvailableDateKeys(name);
+    if (availKeys.length === 0) {
+      openAlertDialog(
+        'Sem disponibilidade',
+        'Este voluntário não informou disponibilidade em nenhuma data da planilha.'
+      );
+      return;
+    }
+  }
+
+  scheduleModalOnlyAvailable = onlyAvailable;
   selectedPerson = name;
   scheduleModalPerson = name;
   scheduleModalDraft = {};
-  GROUP_DATES.forEach(function(d) {
-    scheduleModalDraft[d.key] = schedule[d.key].indexOf(name) > -1;
+
+  var keysForModal = onlyAvailable
+    ? getMemberAvailableDateKeys(name)
+    : GROUP_DATES.map(function(d) { return d.key; });
+  keysForModal.forEach(function(dk) {
+    scheduleModalDraft[dk] = schedule[dk].indexOf(name) > -1;
   });
+
   var modal = document.getElementById('schedule-modal');
   if (!modal) return;
   modal.classList.add('open');
@@ -1731,9 +1780,16 @@ function closeScheduleModal(evt) {
   if (modal) modal.classList.remove('open');
   scheduleModalPerson = null;
   scheduleModalDraft = {};
+  scheduleModalOnlyAvailable = false;
   selectedPerson = null;
   renderSidebar();
   renderAvailGrid();
+}
+
+function getScheduleModalDateKeys() {
+  if (!scheduleModalPerson) return [];
+  if (scheduleModalOnlyAvailable) return getMemberAvailableDateKeys(scheduleModalPerson);
+  return GROUP_DATES.map(function(d) { return d.key; });
 }
 
 function renderScheduleModal() {
@@ -1743,8 +1799,16 @@ function renderScheduleModal() {
   titleEl.textContent = scheduleModalPerson;
   titleEl.classList.toggle('highlight', isHighlightMember(scheduleModalPerson));
   datesDiv.innerHTML = '';
-  GROUP_DATES.forEach(function(dObj) {
-    var dk = dObj.key;
+
+  var keys = getScheduleModalDateKeys();
+  if (!keys.length) {
+    datesDiv.innerHTML = '<div class="modal-text">Nenhuma data de disponibilidade informada na planilha.</div>';
+    return;
+  }
+
+  keys.forEach(function(dk) {
+    var dObj = findGroupDateByKey(dk);
+    if (!dObj) return;
     var allocated = !!scheduleModalDraft[dk];
     var btn = document.createElement('div');
     btn.className = 'panel-date-btn' + (allocated ? ' allocated' : '');
@@ -1775,6 +1839,7 @@ function confirmScheduleModal() {
   if (modal) modal.classList.remove('open');
   scheduleModalPerson = null;
   scheduleModalDraft = {};
+  scheduleModalOnlyAvailable = false;
   selectedPerson = null;
   renderAll();
   flushSyncToSheet();
@@ -2388,7 +2453,7 @@ else if (!data)        nameClass += ' no-data';
   container.innerHTML = html;
   container.querySelectorAll('td.td-name').forEach(function(td) {
     var memberName = td.textContent.trim();
-    td.onclick = function() { selectPerson(memberName); };
+    td.onclick = function() { selectPersonFromAvailGrid(memberName); };
   });
 }
 
@@ -2511,7 +2576,7 @@ function toggleAddMenu(evt) {
 function openAddMenuAction(action) {
   closeAddMenu();
   if (action === 'volunteer') openAddScheduleModal();
-  else if (action === 'date') openCreateDateModal();
+  else if (action === 'date') openCreateDateModal(); /* única entrada para criar nova data */
 }
 
 function toggleActionMenu(evt) {
