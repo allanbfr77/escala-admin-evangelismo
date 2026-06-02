@@ -74,16 +74,14 @@ function getDispSheet() {
 
   var primeiraLinha = aba.getLastRow() === 0 ? '' : String(aba.getRange(1, 1).getValue()).trim();
   if (!primeiraLinha) {
-    aba.getRange(1, 2, 1, DATE_COLS.length).setNumberFormat('@STRING@');
-    var header = ['Nome'].concat(DATE_COLS);
-    aba.getRange(1, 1, 1, header.length).setValues([header]);
-    aba.getRange(1, RECEIVED_AT_COL).setValue('Recebido em');
+    rebuildDisponibilidadesColumns(getDefaultScheduleDates());
   }
   return aba;
 }
 
-function garantirFormatoRecebidoEm(aba, targetRow) {
-  aba.getRange(targetRow, RECEIVED_AT_COL).setNumberFormat('dd/MM/yyyy HH:mm:ss');
+function garantirFormatoRecebidoEm(aba, targetRow, colNum) {
+  var col = colNum || RECEIVED_AT_COL;
+  aba.getRange(targetRow, col).setNumberFormat('dd/MM/yyyy HH:mm:ss');
 }
 
 function getAllAvailability() {
@@ -100,9 +98,7 @@ function getAllAvailability() {
     var tempResults = [];
     for (var j = 1; j < headers.length; j++) {
       var hdr = headers[j];
-      var date = (hdr instanceof Date)
-        ? normalizeDate(hdr)
-        : normalizeDate(String(hdr || '').trim());
+      var date = headerCellToIso(hdr);
       if (!date) continue;
       var val = String(rows[i][j] || '').trim().toLowerCase();
       if (FALSY.indexOf(val) !== -1) continue;
@@ -163,14 +159,15 @@ function registrarEscala(selecionados) {
   var nome = String(selecionados[0][0] || '').trim();
   var nomeNorm = normalizePersonName(nome);
 
-  var headers = aba.getRange(1, 1, 1, DATE_COLS.length + 1).getValues()[0];
+  var lastCol = Math.max(aba.getLastColumn(), 1);
+  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
+  var recvCol = findReceivedAtColumn(headers);
   var colMap = {};
   for (var h = 1; h < headers.length; h++) {
-    var hdr = headers[h];
-    var iso = (hdr instanceof Date)
-      ? normalizeDate(hdr)
-      : normalizeDate(String(hdr || '').trim());
-    if (iso) colMap[iso] = h + 1;
+    var colNum = h + 1;
+    if (colNum === recvCol) continue;
+    var iso = headerCellToIso(headers[h]);
+    if (iso) colMap[iso] = colNum;
   }
 
   var lastRow = aba.getLastRow();
@@ -199,7 +196,7 @@ function registrarEscala(selecionados) {
 
   aba.getRange(targetRow, 1).setValue(nome.toUpperCase());
   garantirFormatoRecebidoEm(aba, targetRow);
-  aba.getRange(targetRow, RECEIVED_AT_COL).setValue(new Date());
+  aba.getRange(targetRow, recvCol).setValue(new Date());
   invalidarCacheNomes();
 
   selecionados.forEach(function(item) {
@@ -222,6 +219,19 @@ function normalizePersonName(rawName) {
 /* ════════════════════════════════════════
    UTIL — datas ISO YYYY-MM-DD
    ════════════════════════════════════════ */
+var MONTH_ABBR_MAP = {
+  jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6,
+  jul: 7, ago: 8, set: 9, out: 10, nov: 11, dez: 12
+};
+
+function cleanDispHeaderText(raw) {
+  return String(raw || '')
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/\.+$/g, '')
+    .replace(/\/+/g, '/');
+}
+
 function normalizeDate(rawDate) {
   if (rawDate instanceof Date) {
     var yr = rawDate.getFullYear();
@@ -229,15 +239,34 @@ function normalizeDate(rawDate) {
     var dy = rawDate.getDate();
     return yr + '-' + (mo < 10 ? '0' + mo : mo) + '-' + (dy < 10 ? '0' + dy : dy);
   }
-  var s = String(rawDate || '').trim();
+  var s = cleanDispHeaderText(rawDate);
   if (!s) return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  var m = s.match(/^(\d{1,2})\/jun$/i);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.slice(0, 10);
+
+  var m = s.match(/^(\d{1,2})\/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)$/i);
   if (m) {
-    var d = parseInt(m[1], 10);
-    return '2026-06-' + (d < 10 ? '0' + d : String(d));
+    var day = parseInt(m[1], 10);
+    var moNum = MONTH_ABBR_MAP[m[2].toLowerCase()];
+    if (!day || !moNum) return '';
+    var year = 2026;
+    return year + '-'
+      + (moNum < 10 ? '0' + moNum : String(moNum)) + '-'
+      + (day < 10 ? '0' + day : String(day));
   }
-  return s;
+  return '';
+}
+
+function normalizeDispHeaderLabel(label, isoKey) {
+  var iso = normalizeDate(isoKey || label);
+  if (iso) return isoToShortLabel(iso);
+  var cleaned = cleanDispHeaderText(label);
+  return cleaned || '';
+}
+
+function headerCellToIso(hdr) {
+  if (hdr instanceof Date) return normalizeDate(hdr);
+  return normalizeDate(hdr);
 }
 
 function periodFromText(periodo) {
@@ -593,31 +622,94 @@ function findReceivedAtColumn(headers) {
   for (var h = 0; h < headers.length; h++) {
     if (String(headers[h] || '').trim().toLowerCase() === 'recebido em') return h + 1;
   }
-  return RECEIVED_AT_COL;
+  return headers.length + 1;
 }
 
-function ensureDispColumnForDate(isoKey, label) {
+/**
+ * Reescreve a aba Disponibilidades com colunas de data em ordem cronológica,
+ * preservando os checks (✓) de cada voluntário na coluna correta.
+ */
+function rebuildDisponibilidadesColumns(scheduleDates) {
   var aba = getDispSheet();
-  var hdrLabel = label || isoToShortLabel(isoKey);
-  if (!hdrLabel || !isoKey) return;
-
+  var lastRow = Math.max(aba.getLastRow(), 1);
   var lastCol = Math.max(aba.getLastColumn(), 1);
-  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
-  var recvCol = findReceivedAtColumn(headers);
+  var allData = aba.getRange(1, 1, lastRow, lastCol).getValues();
+  var oldHeaders = allData[0] || ['Nome'];
+  var recvColIdx = -1;
+  var oldDateCols = [];
 
-  for (var h = 1; h < headers.length; h++) {
-    var col = h + 1;
-    if (col === recvCol) continue;
-    var hdr = headers[h];
-    var hdrIso = (hdr instanceof Date)
-      ? normalizeDate(hdr)
-      : normalizeDate(String(hdr || '').trim());
-    if (hdrIso === isoKey) return;
-    if (String(hdr || '').trim().toLowerCase() === hdrLabel.toLowerCase()) return;
+  for (var h = 1; h < oldHeaders.length; h++) {
+    var hdrLower = String(oldHeaders[h] || '').trim().toLowerCase();
+    if (hdrLower === 'recebido em') {
+      recvColIdx = h;
+      continue;
+    }
+    var iso = headerCellToIso(oldHeaders[h]);
+    if (!iso) continue;
+    oldDateCols.push({
+      iso: iso,
+      label: normalizeDispHeaderLabel(oldHeaders[h], iso),
+      colIdx: h
+    });
   }
 
-  aba.insertColumnBefore(recvCol);
-  aba.getRange(1, recvCol).setValue(hdrLabel).setNumberFormat('@STRING@');
+  var dateMap = {};
+  (scheduleDates || []).forEach(function(d) {
+    var clean = sanitizeDateRecord(d);
+    if (!clean) return;
+    dateMap[clean.key] = normalizeDispHeaderLabel(clean.label, clean.key);
+  });
+  oldDateCols.forEach(function(c) {
+    if (!dateMap[c.iso]) dateMap[c.iso] = c.label;
+  });
+
+  var sortedKeys = Object.keys(dateMap).sort(function(a, b) {
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+
+  var newHeaders = ['Nome'];
+  sortedKeys.forEach(function(k) { newHeaders.push(dateMap[k]); });
+  newHeaders.push('Recebido em');
+  var numCols = newHeaders.length;
+  var recvColNum = numCols;
+
+  var newRows = [newHeaders];
+  for (var r = 1; r < allData.length; r++) {
+    var row = allData[r];
+    var newRow = [row[0] != null ? row[0] : ''];
+    for (var ki = 0; ki < sortedKeys.length; ki++) {
+      var iso = sortedKeys[ki];
+      var srcIdx = -1;
+      for (var o = 0; o < oldDateCols.length; o++) {
+        if (oldDateCols[o].iso === iso) {
+          srcIdx = oldDateCols[o].colIdx;
+          break;
+        }
+      }
+      newRow.push(srcIdx >= 0 && row[srcIdx] !== undefined && row[srcIdx] !== null ? row[srcIdx] : '');
+    }
+    var recvVal = recvColIdx >= 0 && row[recvColIdx] !== undefined ? row[recvColIdx] : '';
+    newRow.push(recvVal);
+    newRows.push(newRow);
+  }
+
+  if (lastRow > 0 && lastCol > 0) {
+    aba.getRange(1, 1, lastRow, lastCol).clearContent();
+  }
+  if (newRows.length && numCols) {
+    aba.getRange(1, 1, newRows.length, numCols).setValues(newRows);
+    aba.getRange(1, 1, 1, numCols).setNumberFormat('@STRING@');
+    if (sortedKeys.length) {
+      aba.getRange(1, 2, newRows.length, 1 + sortedKeys.length).setNumberFormat('@STRING@');
+    }
+    aba.getRange(1, recvColNum).setValue('Recebido em').setNumberFormat('@STRING@');
+    for (var rr = 2; rr <= newRows.length; rr++) {
+      if (newRows[rr - 1][recvColNum - 1]) {
+        aba.getRange(rr, recvColNum).setValue(newRows[rr - 1][recvColNum - 1]);
+        garantirFormatoRecebidoEm(aba, rr, recvColNum);
+      }
+    }
+  }
 }
 
 function setScheduleDates(datesJson) {
@@ -629,17 +721,29 @@ function setScheduleDates(datesJson) {
   var lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
 
-  var rows = [];
+  var cleanedDates = [];
   for (var i = 0; i < dates.length; i++) {
     var clean = sanitizeDateRecord(dates[i]);
     if (!clean) continue;
-    rows.push([clean.key, clean.label, clean.full, clean.day, clean.hora]);
-    ensureDispColumnForDate(clean.key, clean.label);
+    cleanedDates.push(clean);
+  }
+  cleanedDates.sort(function(a, b) {
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+  });
+
+  var rows = [];
+  for (var j = 0; j < cleanedDates.length; j++) {
+    var c = cleanedDates[j];
+    rows.push([c.key, c.label, c.full, c.day, c.hora]);
   }
 
   if (rows.length) {
     sheet.getRange(2, 1, rows.length, 5).setValues(rows);
     sheet.getRange(2, 1, rows.length, 5).setNumberFormat('@STRING@');
+  }
+
+  if (cleanedDates.length) {
+    rebuildDisponibilidadesColumns(cleanedDates);
   }
   return { status: 'ok', count: rows.length };
 }
@@ -666,28 +770,6 @@ function addScheduleDate(dateJson) {
   return setScheduleDates(JSON.stringify(existing));
 }
 
-function removeDispColumnForDate(isoKey, label) {
-  var aba = getDispSheet();
-  var hdrLabel = label || isoToShortLabel(isoKey);
-  if (!isoKey) return;
-
-  var lastCol = Math.max(aba.getLastColumn(), 1);
-  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
-  var recvCol = findReceivedAtColumn(headers);
-
-  for (var h = headers.length - 1; h >= 1; h--) {
-    var col = h + 1;
-    if (col === recvCol) continue;
-    var hdr = headers[h];
-    var hdrIso = (hdr instanceof Date)
-      ? normalizeDate(hdr)
-      : normalizeDate(String(hdr || '').trim());
-    if (hdrIso === isoKey || String(hdr || '').trim().toLowerCase() === hdrLabel.toLowerCase()) {
-      aba.deleteColumn(col);
-      return;
-    }
-  }
-}
 
 function removeEscalaRowsForDate(isoKey) {
   var sheet = getEscalaSheet();
@@ -727,7 +809,7 @@ function removeScheduleDate(rawKey) {
   }
 
   removeEscalaRowsForDate(isoKey);
-  removeDispColumnForDate(isoKey, isoToShortLabel(isoKey));
+  rebuildDisponibilidadesColumns(dates);
 
   return { status: 'ok', key: isoKey };
 }
