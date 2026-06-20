@@ -4,7 +4,7 @@
  */
 
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
-var DATE_COLS = ['03/jun', '06/jun', '20/jun', '24/jun', '28/jun'];
+var DATE_COLS = ['04/jul', '08/jul', '18/jul', '22/jul', '26/jul', '29/jul'];
 var RECEIVED_AT_COL = 9; // Coluna I
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
@@ -12,7 +12,8 @@ var ROLE_LEADER = 'Líder';
 var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
-var SCHEDULE_DATE_KEYS = ['2026-06-03', '2026-06-06', '2026-06-20', '2026-06-24', '2026-06-28'];
+var SCHEDULE_DATE_KEYS = ['2026-07-04', '2026-07-08', '2026-07-18', '2026-07-22', '2026-07-26', '2026-07-29'];
+var ACTIVE_PERIOD = '2026-07';
 
 /* ════════════════════════════════════════
    ROTEADOR
@@ -99,7 +100,7 @@ function getAllAvailability() {
     for (var j = 1; j < headers.length; j++) {
       var hdr = headers[j];
       var date = headerCellToIso(hdr);
-      if (!date) continue;
+      if (!date || date.indexOf(ACTIVE_PERIOD + '-') !== 0) continue;
       var val = String(rows[i][j] || '').trim().toLowerCase();
       if (FALSY.indexOf(val) !== -1) continue;
       tempResults.push([nome, date, 'Disponivel']);
@@ -272,7 +273,7 @@ function headerCellToIso(hdr) {
 function periodFromText(periodo) {
   var s = String(periodo || '').trim().toLowerCase();
   if (!s) return '';
-  if (s.indexOf('jun') !== -1 && s.indexOf('2026') !== -1) return '2026-06';
+  if (s.indexOf('jul') !== -1 && s.indexOf('2026') !== -1) return '2026-07';
   return '';
 }
 
@@ -378,7 +379,7 @@ function getScheduleData() {
   for (var i = 1; i < rows.length; i++) {
     var date = normalizeDate(rows[i][0]);
     var name = String(rows[i][1] || '').trim();
-    if (!date || !name) continue;
+    if (!date || !name || date.indexOf(ACTIVE_PERIOD + '-') !== 0) continue;
 
     var pairKey = date + '\t' + name.toUpperCase();
     if (seen[pairKey]) continue;
@@ -444,6 +445,8 @@ function setScheduleData(schedJson, leadersJson) {
 
   Object.keys(sched).forEach(function(k) {
     if (used[k]) return;
+    var date = normalizeDate(k);
+    if (!date || date.indexOf(ACTIVE_PERIOD + '-') !== 0) return;
     appendRowsForDateKey(k);
   });
 
@@ -516,11 +519,12 @@ function clearScheduleData() {
    ════════════════════════════════════════ */
 function getDefaultScheduleDates() {
   return [
-    { key: '2026-06-03', label: '03/jun', full: '03 de junho', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-06-06', label: '06/jun', full: '06 de junho', day: 'Sábado',  hora: '10h às 11h30' },
-    { key: '2026-06-20', label: '20/jun', full: '20 de junho', day: 'Sábado',  hora: '10h às 11h30' },
-    { key: '2026-06-24', label: '24/jun', full: '24 de junho', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-06-28', label: '28/jun', full: '28 de junho', day: 'Domingo', hora: '17h às 18h30' }
+    { key: '2026-07-04', label: '04/jul', full: '04 de julho', day: 'Sábado',  hora: '10h às 11h30' },
+    { key: '2026-07-08', label: '08/jul', full: '08 de julho', day: 'Quarta',  hora: '18h às 19h30' },
+    { key: '2026-07-18', label: '18/jul', full: '18 de julho', day: 'Sábado',  hora: '09h30 às 11h' },
+    { key: '2026-07-22', label: '22/jul', full: '22 de julho', day: 'Quarta',  hora: '18h às 19h30' },
+    { key: '2026-07-26', label: '26/jul', full: '26 de julho', day: 'Domingo', hora: '17h às 18h30' },
+    { key: '2026-07-29', label: '29/jul', full: '29 de julho', day: 'Quarta',  hora: '18h às 19h30' }
   ];
 }
 
@@ -530,7 +534,7 @@ function isoToShortLabel(iso) {
   var mo = parseInt(m[2], 10);
   var dy = parseInt(m[3], 10);
   var abbr = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  return dy + '/' + (abbr[mo - 1] || 'jun');
+  return dy + '/' + (abbr[mo - 1] || 'jul');
 }
 
 function getDatesSheet() {
@@ -607,6 +611,7 @@ function getScheduleDates() {
     if (!clean) continue;
     dates.push(clean);
   }
+  dates = dates.filter(function(d) { return d.key.indexOf(ACTIVE_PERIOD + '-') === 0; });
   if (dates.length === 0) dates = getDefaultScheduleDates();
   dates.sort(function(a, b) {
     return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
@@ -658,9 +663,6 @@ function rebuildDisponibilidadesColumns(scheduleDates) {
     var clean = sanitizeDateRecord(d);
     if (!clean) return;
     dateMap[clean.key] = normalizeDispHeaderLabel(clean.label, clean.key);
-  });
-  oldDateCols.forEach(function(c) {
-    if (!dateMap[c.iso]) dateMap[c.iso] = c.label;
   });
 
   var sortedKeys = Object.keys(dateMap).sort(function(a, b) {

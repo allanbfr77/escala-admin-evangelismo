@@ -728,7 +728,7 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
       <span class="topbar-title-short">Escala Admin</span>
     </div>
     <div class="topbar-center">
-      <span class="topbar-badge">JUNHO 2026</span>
+      <span class="topbar-badge">JULHO 2026</span>
     </div>
     <div class="topbar-right">
       <span class="save-status" id="save-status"></span>
@@ -972,12 +972,14 @@ var ADMIN_PASS = 'medeiros';
 /* key  → ISO 8601 (único identificador interno, enviado à API e ao localStorage)
    label → string de exibição PT-BR (interface visual, cabeçalhos, painel) */
 var DEFAULT_GROUP_DATES = [
-  { key: '2026-06-03', label: '03/jun', full: '03 de junho', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '2026-06-06', label: '06/jun', full: '06 de junho', day: 'Sábado',  hora: '10h às 11h30' },
-  { key: '2026-06-20', label: '20/jun', full: '20 de junho', day: 'Sábado',  hora: '10h às 11h30'  },
-  { key: '2026-06-24', label: '24/jun', full: '24 de junho', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '2026-06-28', label: '28/jun', full: '28 de junho', day: 'Domingo', hora: '17h às 18h30' },
+  { key: '2026-07-04', label: '04/jul', full: '04 de julho', day: 'Sábado',  hora: '10h às 11h30' },
+  { key: '2026-07-08', label: '08/jul', full: '08 de julho', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-07-18', label: '18/jul', full: '18 de julho', day: 'Sábado',  hora: '09h30 às 11h' },
+  { key: '2026-07-22', label: '22/jul', full: '22 de julho', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-07-26', label: '26/jul', full: '26 de julho', day: 'Domingo', hora: '17h às 18h30' },
+  { key: '2026-07-29', label: '29/jul', full: '29 de julho', day: 'Quarta',  hora: '18h às 19h30' },
 ];
+var ACTIVE_PERIOD = '2026-07';
 var MONTH_ABBR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 var MONTHS_PT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 var WEEKDAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
@@ -1105,23 +1107,56 @@ function buildDateEntryFromIso(iso, hora) {
   var dt = new Date(yr, mo - 1, dy);
   return {
     key: iso,
-    label: dy + '/' + (MONTH_ABBR[mo - 1] || 'jun'),
-    full: dy + ' de ' + (MONTHS_PT[mo - 1] || 'junho'),
+    label: dy + '/' + (MONTH_ABBR[mo - 1] || 'jul'),
+    full: dy + ' de ' + (MONTHS_PT[mo - 1] || 'julho'),
     day: WEEKDAYS_PT[dt.getDay()],
     hora: String(hora || '').trim() || '18h às 19h30'
   };
 }
 
+function isActivePeriodDate(iso) {
+  return String(iso || '').indexOf(ACTIVE_PERIOD + '-') === 0;
+}
+
+function purgeInactiveDates() {
+  var activeKeys = {};
+  GROUP_DATES = GROUP_DATES.filter(function(d) {
+    if (isActivePeriodDate(d.key)) {
+      activeKeys[d.key] = true;
+      return true;
+    }
+    return false;
+  });
+  Object.keys(schedule).forEach(function(k) {
+    if (!activeKeys[k]) delete schedule[k];
+  });
+  Object.keys(scheduleLeaders).forEach(function(k) {
+    if (!activeKeys[k]) delete scheduleLeaders[k];
+  });
+  MEMBERS.forEach(function(name) {
+    var data = memberData[name];
+    if (!data || !Array.isArray(data.dates)) return;
+    data.dates = data.dates.filter(isActivePeriodDate);
+  });
+  sortGroupDates();
+  ensureScheduleSlots();
+}
+
+function setGroupDates(dates) {
+  if (!Array.isArray(dates) || !dates.length) return;
+  GROUP_DATES = dates.map(sanitizeDateEntry).filter(function(d) {
+    return d && isActivePeriodDate(d.key);
+  });
+  sortGroupDates();
+  ensureScheduleSlots();
+}
+
 function applyGroupDates(dates) {
   if (!Array.isArray(dates) || !dates.length) return;
   var map = {};
-  GROUP_DATES.forEach(function(d) {
-    var clean = sanitizeDateEntry(d);
-    if (clean) map[clean.key] = clean;
-  });
   dates.forEach(function(d) {
     var clean = sanitizeDateEntry(d);
-    if (!clean) return;
+    if (!clean || !isActivePeriodDate(clean.key)) return;
     map[clean.key] = clean;
   });
   GROUP_DATES = Object.keys(map).map(function(k) { return map[k]; });
@@ -1133,13 +1168,12 @@ function mergeUnknownScheduleKeys(sched) {
   if (!sched || typeof sched !== 'object') return;
   Object.keys(sched).forEach(function(rawKey) {
     var key = resolveDateKey(rawKey);
-    if (!key || findGroupDateByKey(key)) return;
+    if (!key || !isActivePeriodDate(key) || findGroupDateByKey(key)) return;
     var unknownEntry = sanitizeDateEntry(buildDateEntryFromIso(key));
     if (unknownEntry) GROUP_DATES.push(unknownEntry);
     schedule[key] = schedule[key] || [];
   });
-  sortGroupDates();
-  ensureScheduleSlots();
+  purgeInactiveDates();
 }
 
 function normalizeIsoDate(raw) {
@@ -1159,9 +1193,9 @@ var ROLE_VOLUNTEER = 'Voluntário';
 var ROLE_LEADER = 'Líder';
 
 /* ── PERSISTÊNCIA LOCAL (cache / fallback) ── */
-var STORAGE_KEY     = 'escala_evangelismo_junho2026_v2'; // v2 = chaves ISO 8601
-var SESSION_KEY     = 'escala_session_junho2026';
-var SHEET_CACHE_KEY = 'escala_sheet_cache_junho2026';
+var STORAGE_KEY     = 'escala_evangelismo_julho2026_v3'; // v3 = só datas do período ativo
+var SESSION_KEY     = 'escala_session_julho2026';
+var SHEET_CACHE_KEY = 'escala_sheet_cache_julho2026';
 
 function saveSchedule() {
   try {
@@ -1195,6 +1229,7 @@ function loadSchedule() {
       });
       loadScheduleLeadersFromObject(parsed.leaders);
       dedupeScheduleEntries();
+      purgeInactiveDates();
       GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
     }
   } catch(e) {}
@@ -1223,7 +1258,7 @@ function setSaveStatus(state) {
 /* ── SINCRONIZAÇÃO COM A PLANILHA ── */
 
 /* Camada de sanitização: converte QUALQUER representação de data recebida
-   (ISO, "03/jun", string longa do Sheets com fuso, Date serializado) para
+   (ISO, "04/jul", string longa do Sheets com fuso, Date serializado) para
    o formato interno ISO 8601 "YYYY-MM-DD". Retorna null se não reconhecer. */
 function formatDateForCode(raw) {
   if (!raw) return null;
@@ -1238,12 +1273,12 @@ function formatDateForCode(raw) {
     if (isValidIsoDate(isoPart)) return isoPart;
   }
 
-  // 2) Label cadastrado (ex: "17/jun")
+  // 2) Label cadastrado (ex: "08/jul")
   for (var i = 0; i < GROUP_DATES.length; i++) {
     if (GROUP_DATES[i].label.toLowerCase() === s.toLowerCase()) return GROUP_DATES[i].key;
   }
 
-  // 3) Formato legado "03/jun"
+  // 3) Formato legado "04/jul"
   var mLeg = s.match(/^(\d{1,2})\/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)$/i);
   if (mLeg) {
     var dd = parseInt(mLeg[1], 10);
@@ -1295,11 +1330,10 @@ function loadScheduleFromSheet() {
       if (!data || data.error || typeof data !== 'object') return;
       var sched = data.schedule || data;
       var leaders = data.leaders || {};
-      mergeUnknownScheduleKeys(sched);
       GROUP_DATES.forEach(function(d) { schedule[d.key] = []; });
       Object.keys(sched).forEach(function(rawKey) {
         var key = formatDateForCode(rawKey) || normalizeIsoDate(rawKey);
-        if (!key || !Array.isArray(sched[rawKey])) return;
+        if (!key || !Array.isArray(sched[rawKey]) || !isActivePeriodDate(key)) return;
         if (!findGroupDateByKey(key)) {
           var sheetEntry = sanitizeDateEntry(buildDateEntryFromIso(key));
           if (sheetEntry) GROUP_DATES.push(sheetEntry);
@@ -1310,6 +1344,7 @@ function loadScheduleFromSheet() {
       ensureScheduleSlots();
       loadScheduleLeadersFromObject(leaders);
       dedupeScheduleEntries();
+      purgeInactiveDates();
       GROUP_DATES.forEach(function(d) { applyDateDisplayOrder(d.key); });
       saveSchedule();
       renderAll();
@@ -1593,14 +1628,25 @@ function loadDatesFromSheet() {
   fetch(SCRIPT_URL + '?action=getDates&t=' + Date.now(), { cache: 'no-store' })
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      if (!data || data.error || !Array.isArray(data.dates) || !data.dates.length) return;
-      applyGroupDates(data.dates);
-      GROUP_DATES = GROUP_DATES.map(sanitizeDateEntry).filter(Boolean);
-      sortGroupDates();
+      var serverDates = (data && Array.isArray(data.dates)) ? data.dates : [];
+      var activeDates = serverDates.map(sanitizeDateEntry).filter(function(d) {
+        return d && isActivePeriodDate(d.key);
+      });
+      if (!activeDates.length) {
+        activeDates = DEFAULT_GROUP_DATES.map(sanitizeDateEntry).filter(Boolean);
+      }
+      setGroupDates(activeDates);
+      purgeInactiveDates();
       saveSchedule();
       renderAll();
+      if (serverDates.length !== activeDates.length) {
+        persistDatesToSheet();
+      }
     })
-    .catch(function() {});
+    .catch(function() {
+      purgeInactiveDates();
+      renderAll();
+    });
 }
 
 function useFallback() {
@@ -1631,7 +1677,7 @@ function processSheetData(rows) {
     if (!map[name]) map[name] = [];
     if (status.includes('dispon')) {
       var isoKey = formatDateForCode(date);
-      if (isoKey) map[name].push(isoKey);
+      if (isoKey && isActivePeriodDate(isoKey)) map[name].push(isoKey);
     }
   });
   MEMBERS.forEach(function(m) {
@@ -1849,7 +1895,7 @@ function openCreateDateModal() {
   var dateInp = document.getElementById('create-date-input');
   var horaInp = document.getElementById('create-date-hora');
   if (!dateInp) return;
-  if (!dateInp.value) dateInp.value = '2026-06-17';
+  if (!dateInp.value) dateInp.value = '2026-07-08';
   if (horaInp && !horaInp.value) horaInp.value = '18h às 19h30';
   updateCreateDatePreview();
   dateInp.onchange = updateCreateDatePreview;
@@ -2749,7 +2795,7 @@ function doDownload() {
     var bd = '#cbd5e1';
     var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
       + '<div style="font-size:13px;font-weight:700;letter-spacing:1.5px;color:#6b7a99;text-transform:uppercase;">MINISTÉRIO DE EVANGELISMO & INTEGRAÇÃO</div>'
-      + '<div style="font-size:13px;font-weight:600;color:#6b7a99;letter-spacing:1px;">JUNHO 2026</div></div>'
+      + '<div style="font-size:13px;font-weight:600;color:#6b7a99;letter-spacing:1px;">JULHO 2026</div></div>'
       + '<div style="height:2px;background:' + bd + ';margin-bottom:28px;"></div>'
       + '<table style="width:100%;min-width:' + (colCount * 155) + 'px;border-collapse:collapse;table-layout:fixed;border:1px solid ' + bd + ';"><thead><tr>';
     GROUP_DATES.forEach(function(d) {
@@ -2784,7 +2830,7 @@ function doDownload() {
           document.body.removeChild(wrap);
           hideLoading();
           var link = document.createElement('a');
-          link.download = 'escala-evangelismo-junho-2026.png';
+          link.download = 'escala-evangelismo-julho-2026.png';
           link.href = canvas.toDataURL('image/png');
           link.click();
           resolve();
