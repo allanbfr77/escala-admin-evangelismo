@@ -444,6 +444,9 @@ table.escala tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border2
   background: var(--surface2); border: 1px solid var(--border2);
   color: var(--text-2); font-weight: 700; font-size: 9.5px; letter-spacing: 0.1px;
 }
+.avail-table th:not(.th-name) { line-height: 1.15; vertical-align: middle; }
+.avail-th-day, .avail-th-date { display: block; white-space: nowrap; }
+.avail-th-date { font-weight: 600; margin-top: 1px; }
 .avail-table th.th-name { text-align: left; width: 36%; padding-left: 4px; }
 .avail-table td { padding: 3px 2px; border: 1px solid var(--border2); text-align: center; vertical-align: middle; }
 .avail-table td.td-name {
@@ -1063,7 +1066,8 @@ function formatAvailColHeader(d) {
   var e = getDisplayDateEntry(d);
   var p = e.key.split('-');
   var shortDay = DAY_SHORT[e.day] || e.day.slice(0, 3);
-  return shortDay + ' ' + p[2] + '/' + p[1];
+  return '<span class="avail-th-day">' + shortDay + '</span>'
+    + '<span class="avail-th-date">' + p[2] + '/' + p[1] + '</span>';
 }
 
 function cloneDateEntry(d) {
@@ -2468,13 +2472,12 @@ function toggleAvail() {
 function renderAvailGrid() {
   var container = document.getElementById('avail-blocks');
   if (!container) return;
-  var dayNums = GROUP_DATES.map(function(d){ return formatAvailColHeader(d); });
   var chunks = [];
   for (var i = 0; i < MEMBERS.length; i += 11) chunks.push(MEMBERS.slice(i, i + 11));
   var html = '';
   chunks.forEach(function(chunk) {
     html += '<div class="avail-block"><table class="avail-table"><thead><tr><th class="th-name">Nome</th>';
-    dayNums.forEach(function(n){ html += '<th>' + n + '</th>'; });
+    GROUP_DATES.forEach(function(d){ html += '<th>' + formatAvailColHeader(d) + '</th>'; });
     html += '</tr></thead><tbody>';
     chunk.forEach(function(name) {
       var data    = memberData[name];
