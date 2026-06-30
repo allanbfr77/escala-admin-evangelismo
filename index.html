@@ -166,6 +166,17 @@ body {
 .layout { display: flex; height: calc(100vh - var(--topbar-h)); height: calc(100dvh - var(--topbar-h)); overflow: hidden; }
 
 /* ── SIDEBAR ── */
+.sidebar-rail { display: none; flex-shrink: 0; }
+.sidebar-edge-toggle {
+  display: none; position: absolute; top: 50%; right: 0; z-index: 51;
+  transform: translate(50%, -50%); width: 22px; height: 44px; padding: 0;
+  background: var(--glass-panel-2); border: 1px solid var(--border); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-2); font-size: 15px; line-height: 1; cursor: pointer;
+  align-items: center; justify-content: center;
+  transition: color .15s, border-color .15s, background .15s, box-shadow .15s;
+  box-shadow: var(--shadow-sm);
+}
+.sidebar-edge-toggle:hover { color: var(--gold); border-color: var(--gold-dim); background: var(--gold-glow); }
 .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--glass-shell);
   backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
   border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
@@ -456,6 +467,26 @@ table.escala tfoot .col-count, .escala-day-footer .col-count {
 .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 49; }
 .sidebar-backdrop.open { display: block; }
 
+/* Desktop — menu lateral recolhível sem deslocar o conteúdo principal */
+@media (min-width: 769px) {
+  .sidebar-rail {
+    display: block; position: relative;
+    width: var(--sidebar-w); min-width: var(--sidebar-w);
+  }
+  .sidebar-edge-toggle { display: flex; }
+  .layout > .sidebar {
+    position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+    z-index: 50; min-width: 0;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: none;
+  }
+  .layout > .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow);
+  }
+}
+
 /* ════════════════════════════════════════════════
    SISTEMA RESPONSIVO — telefones, phablets, tablets
    e ROTAÇÃO (paisagem). Funções/hook de JS preservados.
@@ -572,6 +603,7 @@ table.escala tfoot .col-count, .escala-day-footer .col-count {
   .save-status { display: none; }
   .period-badge { font-size: 8.5px; padding: 3px 9px; letter-spacing: .9px; }
   .btn-sidebar-toggle { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 38px; height: 38px; padding: 0; }
+  .sidebar-rail { display: none !important; }
 
   /* sidebar off-canvas (gaveta) */
   .layout { position: relative; }
@@ -1558,8 +1590,11 @@ table.escala tbody td.escala-empty-cell { padding: 0; border-bottom: none; text-
   </div>
 
   <div class="layout">
+    <div class="sidebar-rail">
+      <button type="button" class="sidebar-edge-toggle" id="sidebar-edge-toggle" onclick="toggleSidebar()" aria-label="Fechar menu" aria-expanded="true">‹</button>
+    </div>
     <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar open" id="sidebar">
       <div class="sidebar-header">
         <h3>Membros com Dados (<span id="sb-count">0/33</span>)</h3>
         <div class="sidebar-search">
@@ -3495,16 +3530,31 @@ function switchTab(tab) {
   }
 }
 
-/* ── MOBILE SIDEBAR ── */
+/* ── SIDEBAR (desktop: seta na borda; mobile: gaveta + backdrop) ── */
+function isMobileSidebar() {
+  return window.innerWidth <= 768 ||
+    (window.matchMedia('(orientation: landscape) and (max-height: 540px)').matches);
+}
+function syncSidebarToggleUi(open) {
+  var edgeBtn = document.getElementById('sidebar-edge-toggle');
+  if (edgeBtn) {
+    edgeBtn.textContent = open ? '‹' : '›';
+    edgeBtn.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+    edgeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+}
 function toggleSidebar() {
   var sb = document.getElementById('sidebar');
   var bd = document.getElementById('sidebar-backdrop');
   var open = sb.classList.toggle('open');
-  bd.classList.toggle('open', open);
+  if (bd) bd.classList.toggle('open', open && isMobileSidebar());
+  syncSidebarToggleUi(open);
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-backdrop').classList.remove('open');
+  var bd = document.getElementById('sidebar-backdrop');
+  if (bd) bd.classList.remove('open');
+  syncSidebarToggleUi(false);
 }
 
 /* ── UTILS ── */
