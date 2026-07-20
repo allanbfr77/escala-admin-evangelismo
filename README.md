@@ -97,7 +97,7 @@ var ADMIN_PASS = 'sua_senha';
 Opcionalmente, ajuste também:
 
 - `DEFAULT_GROUP_DATES` — datas padrão do período
-- `ACTIVE_PERIOD` — mês ativo no formato `YYYY-MM` (ex.: `2026-07`)
+- `ACTIVE_PERIOD` — mês ativo no formato `YYYY-MM` (ex.: `2026-08`)
 - `MEMBERS` — lista de membros do ministério
 - `HIGHLIGHT_MEMBERS` — membros destacados na interface
 

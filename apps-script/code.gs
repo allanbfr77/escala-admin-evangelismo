@@ -4,16 +4,16 @@
  */
 
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
-var DATE_COLS = ['04/jul', '08/jul', '18/jul', '22/jul', '26/jul', '29/jul'];
-var RECEIVED_AT_COL = 9; // Coluna I
+var DATE_COLS = ['01/ago', '12/ago', '15/ago', '23/ago', '26/ago'];
+var RECEIVED_AT_COL = 7; // Coluna G (Nome + 5 datas + Recebido em)
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
 var ROLE_LEADER = 'Líder';
 var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
-var SCHEDULE_DATE_KEYS = ['2026-07-04', '2026-07-08', '2026-07-18', '2026-07-22', '2026-07-26', '2026-07-29'];
-var ACTIVE_PERIOD = '2026-07';
+var SCHEDULE_DATE_KEYS = ['2026-08-01', '2026-08-12', '2026-08-15', '2026-08-23', '2026-08-26'];
+var ACTIVE_PERIOD = '2026-08';
 
 /* ════════════════════════════════════════
    ROTEADOR
@@ -273,7 +273,7 @@ function headerCellToIso(hdr) {
 function periodFromText(periodo) {
   var s = String(periodo || '').trim().toLowerCase();
   if (!s) return '';
-  if (s.indexOf('jul') !== -1 && s.indexOf('2026') !== -1) return '2026-07';
+  if (s.indexOf('ago') !== -1 && s.indexOf('2026') !== -1) return '2026-08';
   return '';
 }
 
@@ -519,12 +519,11 @@ function clearScheduleData() {
    ════════════════════════════════════════ */
 function getDefaultScheduleDates() {
   return [
-    { key: '2026-07-04', label: '04/jul', full: '04 de julho', day: 'Sábado',  hora: '10h às 11h30' },
-    { key: '2026-07-08', label: '08/jul', full: '08 de julho', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-07-18', label: '18/jul', full: '18 de julho', day: 'Sábado',  hora: '09h30 às 11h' },
-    { key: '2026-07-22', label: '22/jul', full: '22 de julho', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-07-26', label: '26/jul', full: '26 de julho', day: 'Domingo', hora: '17h às 18h30' },
-    { key: '2026-07-29', label: '29/jul', full: '29 de julho', day: 'Quarta',  hora: '18h às 19h30' }
+    { key: '2026-08-01', label: '01/ago', full: '01 de agosto', day: 'Sábado',  hora: '10h às 11h30' },
+    { key: '2026-08-12', label: '12/ago', full: '12 de agosto', day: 'Quarta',  hora: '18h às 19h30' },
+    { key: '2026-08-15', label: '15/ago', full: '15 de agosto', day: 'Sábado',  hora: '09h30 às 11h' },
+    { key: '2026-08-23', label: '23/ago', full: '23 de agosto', day: 'Domingo', hora: '17h às 18h30' },
+    { key: '2026-08-26', label: '26/ago', full: '26 de agosto', day: 'Quarta',  hora: '18h às 19h30' }
   ];
 }
 
