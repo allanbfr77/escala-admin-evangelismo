@@ -1619,7 +1619,7 @@ table.escala tbody td.escala-empty-cell { padding: 0; border-bottom: none; text-
           <div class="toolbar-title-group">
             <div class="toolbar-title-line">
               <div class="toolbar-title">Escala Mensal</div>
-              <span class="period-badge" id="period-badge">AGOSTO 2026</span>
+              <span class="period-badge" id="period-badge">SETEMBRO 2026</span>
             </div>
             <div class="toolbar-subtitle">Monte, organize e exporte a escala do mês</div>
           </div>
@@ -1854,13 +1854,13 @@ var ADMIN_PASS = 'medeiros';
 /* key  → ISO 8601 (único identificador interno, enviado à API e ao localStorage)
    label → string de exibição PT-BR (interface visual, cabeçalhos, painel) */
 var DEFAULT_GROUP_DATES = [
-  { key: '2026-08-01', label: '01/ago', full: '01 de agosto', day: 'Sábado',  hora: '10h às 11h30' },
-  { key: '2026-08-12', label: '12/ago', full: '12 de agosto', day: 'Quarta',  hora: '18h às 19h30' },
-  { key: '2026-08-15', label: '15/ago', full: '15 de agosto', day: 'Sábado',  hora: '09h30 às 11h' },
-  { key: '2026-08-23', label: '23/ago', full: '23 de agosto', day: 'Domingo', hora: '17h às 18h30' },
-  { key: '2026-08-26', label: '26/ago', full: '26 de agosto', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-09-05', label: '05/set', full: '05 de setembro', day: 'Sábado',  hora: '10h às 11h30' },
+  { key: '2026-09-09', label: '09/set', full: '09 de setembro', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-09-19', label: '19/set', full: '19 de setembro', day: 'Sábado',  hora: '09h30 às 11h' },
+  { key: '2026-09-23', label: '23/set', full: '23 de setembro', day: 'Quarta',  hora: '18h às 19h30' },
+  { key: '2026-09-27', label: '27/set', full: '27 de setembro', day: 'Domingo', hora: '17h às 18h30' },
 ];
-var ACTIVE_PERIOD = '2026-08';
+var ACTIVE_PERIOD = '2026-09';
 var MONTH_ABBR = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 var MONTHS_PT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 var WEEKDAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
@@ -2101,9 +2101,9 @@ var ROLE_VOLUNTEER = 'Voluntário';
 var ROLE_LEADER = 'Líder';
 
 /* ── PERSISTÊNCIA LOCAL (cache / fallback) ── */
-var STORAGE_KEY     = 'escala_evangelismo_agosto2026_v3'; // v3 = só datas do período ativo
-var SESSION_KEY     = 'escala_session_agosto2026';
-var SHEET_CACHE_KEY = 'escala_sheet_cache_agosto2026';
+var STORAGE_KEY     = 'escala_evangelismo_setembro2026_v3'; // v3 = só datas do período ativo
+var SESSION_KEY     = 'escala_session_setembro2026';
+var SHEET_CACHE_KEY = 'escala_sheet_cache_setembro2026';
 
 function saveSchedule() {
   try {
@@ -2823,7 +2823,7 @@ function openCreateDateModal() {
   var dateInp = document.getElementById('create-date-input');
   var horaInp = document.getElementById('create-date-hora');
   if (!dateInp) return;
-  if (!dateInp.value) dateInp.value = '2026-08-12';
+  if (!dateInp.value) dateInp.value = '2026-09-09';
   if (horaInp && !horaInp.value) horaInp.value = '18h às 19h30';
   updateCreateDatePreview();
   dateInp.onchange = updateCreateDatePreview;
