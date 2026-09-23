@@ -4,7 +4,8 @@
  */
 
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
-var DATE_COLS = ['05/set', '09/set', '19/set', '23/set', '27/set'];
+var DATE_COLS = ['03/out', '07/out', '21/out', '24/out', '28/out'];
+// Domingo removido deste período. Para reativar, acrescente a coluna correspondente, ex.: 'DD/out'
 var RECEIVED_AT_COL = 7; // Coluna G (Nome + 5 datas + Recebido em)
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
@@ -12,8 +13,9 @@ var ROLE_LEADER = 'Líder';
 var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
-var SCHEDULE_DATE_KEYS = ['2026-09-05', '2026-09-09', '2026-09-19', '2026-09-23', '2026-09-27'];
-var ACTIVE_PERIOD = '2026-09';
+var SCHEDULE_DATE_KEYS = ['2026-10-03', '2026-10-07', '2026-10-21', '2026-10-24', '2026-10-28'];
+// Domingo removido deste período. Para reativar, acrescente a chave correspondente, ex.: '2026-10-DD'
+var ACTIVE_PERIOD = '2026-10';
 
 /* ════════════════════════════════════════
    ROTEADOR
@@ -273,7 +275,7 @@ function headerCellToIso(hdr) {
 function periodFromText(periodo) {
   var s = String(periodo || '').trim().toLowerCase();
   if (!s) return '';
-  if ((s.indexOf('set') !== -1 || s.indexOf('setembro') !== -1) && s.indexOf('2026') !== -1) return '2026-09';
+  if ((s.indexOf('out') !== -1 || s.indexOf('outubro') !== -1) && s.indexOf('2026') !== -1) return '2026-10';
   return '';
 }
 
@@ -519,11 +521,13 @@ function clearScheduleData() {
    ════════════════════════════════════════ */
 function getDefaultScheduleDates() {
   return [
-    { key: '2026-09-05', label: '05/set', full: '05 de setembro', day: 'Sábado',  hora: '10h às 11h30' },
-    { key: '2026-09-09', label: '09/set', full: '09 de setembro', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-09-19', label: '19/set', full: '19 de setembro', day: 'Sábado',  hora: '09h30 às 11h' },
-    { key: '2026-09-23', label: '23/set', full: '23 de setembro', day: 'Quarta',  hora: '18h às 19h30' },
-    { key: '2026-09-27', label: '27/set', full: '27 de setembro', day: 'Domingo', hora: '17h às 18h30' }
+    { key: '2026-10-03', label: '03/out', full: '03 de outubro', day: 'Sábado', hora: '10h às 11h30' },
+    { key: '2026-10-07', label: '07/out', full: '07 de outubro', day: 'Quarta', hora: '18h às 19h30' },
+    { key: '2026-10-21', label: '21/out', full: '21 de outubro', day: 'Quarta', hora: '18h às 19h30' },
+    { key: '2026-10-24', label: '24/out', full: '24 de outubro', day: 'Sábado', hora: '09h30 às 11h' },
+    { key: '2026-10-28', label: '28/out', full: '28 de outubro', day: 'Quarta', hora: '18h às 19h30' }
+    // Domingo removido deste período. Para reativar, descomente e ajuste a data:
+    // , { key: '2026-10-04', label: '04/out', full: '04 de outubro', day: 'Domingo', hora: '17h às 18h30' }
   ];
 }
 
