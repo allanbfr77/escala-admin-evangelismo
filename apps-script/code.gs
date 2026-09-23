@@ -137,23 +137,40 @@ function getOccupiedNames(periodo) {
   return { ocupados: Object.keys(namesMap).sort() };
 }
 
+var NOMES_CACHE_KEY = 'usedNames_v1';
+var NOMES_CACHE_TTL_SEC = 30; // dados podem ficar até 30s "atrasados" em troca de resposta quase instantânea
+
 function getUsedNames() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get(NOMES_CACHE_KEY);
+  if (cached) {
+    try { return JSON.parse(cached); } catch (parseErr) { /* cache corrompido, segue para leitura ao vivo */ }
+  }
+
   var ss  = SpreadsheetApp.openById(SHEET_ID);
   var aba = ss.getSheetByName('Disponibilidades') || ss.getSheets()[0];
   var lastRow = aba.getLastRow();
-  if (lastRow <= 1) return { ocupados: [] };
-
-  var values = aba.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
-  var namesMap = {};
-  for (var i = 0; i < values.length; i++) {
-    var nome = normalizePersonName(values[i][0]);
-    if (!nome) continue;
-    namesMap[nome] = true;
+  var result;
+  if (lastRow <= 1) {
+    result = { ocupados: [] };
+  } else {
+    var values = aba.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+    var namesMap = {};
+    for (var i = 0; i < values.length; i++) {
+      var nome = normalizePersonName(values[i][0]);
+      if (!nome) continue;
+      namesMap[nome] = true;
+    }
+    result = { ocupados: Object.keys(namesMap).sort() };
   }
-  return { ocupados: Object.keys(namesMap).sort() };
+
+  try { cache.put(NOMES_CACHE_KEY, JSON.stringify(result), NOMES_CACHE_TTL_SEC); } catch (cacheErr) { /* segue sem cache se falhar */ }
+  return result;
 }
 
-function invalidarCacheNomes() { /* cache removido — leitura sempre ao vivo */ }
+function invalidarCacheNomes() {
+  try { CacheService.getScriptCache().remove(NOMES_CACHE_KEY); } catch (e) { /* nada a fazer */ }
+}
 
 function registrarEscala(selecionados) {
   if (!selecionados || selecionados.length === 0) return;
