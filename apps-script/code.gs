@@ -4,8 +4,7 @@
  */
 
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
-var DATE_COLS = ['03/out', '07/out', '21/out', '24/out', '28/out'];
-// Domingo removido deste período. Para reativar, acrescente a coluna correspondente, ex.: 'DD/out'
+var DATE_COLS = ['04/nov', '07/nov', '18/nov', '22/nov', '28/nov'];
 var RECEIVED_AT_COL = 7; // Coluna G (Nome + 5 datas + Recebido em)
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
@@ -13,9 +12,8 @@ var ROLE_LEADER = 'Líder';
 var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
-var SCHEDULE_DATE_KEYS = ['2026-10-03', '2026-10-07', '2026-10-21', '2026-10-24', '2026-10-28'];
-// Domingo removido deste período. Para reativar, acrescente a chave correspondente, ex.: '2026-10-DD'
-var ACTIVE_PERIOD = '2026-10';
+var SCHEDULE_DATE_KEYS = ['2026-11-04', '2026-11-07', '2026-11-18', '2026-11-22', '2026-11-28'];
+var ACTIVE_PERIOD = '2026-11';
 
 /* ════════════════════════════════════════
    ROTEADOR
@@ -138,7 +136,7 @@ function getOccupiedNames(periodo) {
 }
 
 var NOMES_CACHE_KEY = 'usedNames_v1';
-var NOMES_CACHE_TTL_SEC = 30; // dados podem ficar até 30s "atrasados" em troca de resposta quase instantânea
+var NOMES_CACHE_TTL_SEC = 55; // dados podem ficar até 55s "atrasados" em troca de resposta quase instantânea (alinhado ao polling de 60s do front)
 
 function getUsedNames() {
   var cache = CacheService.getScriptCache();
@@ -180,7 +178,13 @@ function registrarEscala(selecionados) {
   var nomeNorm = normalizePersonName(nome);
 
   var lastCol = Math.max(aba.getLastColumn(), 1);
-  var headers = aba.getRange(1, 1, 1, lastCol).getValues()[0];
+  var lastRow = aba.getLastRow();
+
+  // Uma única leitura cobrindo cabeçalho + todos os nomes já cadastrados,
+  // em vez de duas chamadas separadas à Sheets API.
+  var readRows = Math.max(lastRow, 1);
+  var bloco = aba.getRange(1, 1, readRows, lastCol).getValues();
+  var headers = bloco[0];
   var recvCol = findReceivedAtColumn(headers);
   var colMap = {};
   for (var h = 1; h < headers.length; h++) {
@@ -190,41 +194,43 @@ function registrarEscala(selecionados) {
     if (iso) colMap[iso] = colNum;
   }
 
-  var lastRow = aba.getLastRow();
   var targetRow = -1;
-  if (lastRow > 1) {
-    var names = aba.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
-    for (var n = 0; n < names.length; n++) {
-      var existingNameNorm = normalizePersonName(names[n][0]);
-      if (existingNameNorm && existingNameNorm === nomeNorm) {
-        targetRow = n + 2;
+  for (var n = 1; n < bloco.length; n++) {
+    var existingNameNorm = normalizePersonName(bloco[n][0]);
+    if (existingNameNorm && existingNameNorm === nomeNorm) {
+      targetRow = n + 1;
+      break;
+    }
+  }
+  if (targetRow === -1) {
+    for (var e = 1; e < bloco.length; e++) {
+      if (!String(bloco[e][0] || '').trim()) {
+        targetRow = e + 1;
         break;
       }
     }
-
-    if (targetRow === -1) {
-      for (var e = 0; e < names.length; e++) {
-        if (!String(names[e][0] || '').trim()) {
-          targetRow = e + 2;
-          break;
-        }
-      }
-    }
   }
-
   if (targetRow === -1) targetRow = Math.max(2, lastRow + 1);
 
-  aba.getRange(targetRow, 1).setValue(nome.toUpperCase());
-  garantirFormatoRecebidoEm(aba, targetRow);
-  aba.getRange(targetRow, recvCol).setValue(new Date());
-  invalidarCacheNomes();
+  // Monta a linha inteira em memória e grava tudo de uma vez (1 chamada),
+  // em vez de um setValue() por célula (era 1 para o nome + 1 por data + 1 para "recebido em").
+  var largura = Math.max(lastCol, recvCol); // salvaguarda: recvCol pode, em teoria, cair fora da última coluna lida
+  var linhaAtual = bloco[targetRow - 1] || [];
+  var novaLinha = [];
+  for (var c = 0; c < largura; c++) novaLinha.push(linhaAtual[c] || '');
+  novaLinha[0] = nome.toUpperCase();
+  novaLinha[recvCol - 1] = new Date();
 
   selecionados.forEach(function(item) {
     var iso = normalizeDate(String(item[1] || '').trim());
     var col = colMap[iso];
     if (!col) return;
-    aba.getRange(targetRow, col).setValue(item[2] === 'Disponivel' ? '✓' : '');
+    novaLinha[col - 1] = item[2] === 'Disponivel' ? '✓' : '';
   });
+
+  aba.getRange(targetRow, 1, 1, largura).setValues([novaLinha]);
+  garantirFormatoRecebidoEm(aba, targetRow, recvCol);
+  invalidarCacheNomes();
 }
 
 function normalizePersonName(rawName) {
@@ -292,6 +298,7 @@ function headerCellToIso(hdr) {
 function periodFromText(periodo) {
   var s = String(periodo || '').trim().toLowerCase();
   if (!s) return '';
+  if ((s.indexOf('nov') !== -1 || s.indexOf('novembro') !== -1) && s.indexOf('2026') !== -1) return '2026-11';
   if ((s.indexOf('out') !== -1 || s.indexOf('outubro') !== -1) && s.indexOf('2026') !== -1) return '2026-10';
   return '';
 }
@@ -538,13 +545,11 @@ function clearScheduleData() {
    ════════════════════════════════════════ */
 function getDefaultScheduleDates() {
   return [
-    { key: '2026-10-03', label: '03/out', full: '03 de outubro', day: 'Sábado', hora: '10h às 11h30' },
-    { key: '2026-10-07', label: '07/out', full: '07 de outubro', day: 'Quarta', hora: '18h às 19h30' },
-    { key: '2026-10-21', label: '21/out', full: '21 de outubro', day: 'Quarta', hora: '18h às 19h30' },
-    { key: '2026-10-24', label: '24/out', full: '24 de outubro', day: 'Sábado', hora: '09h30 às 11h' },
-    { key: '2026-10-28', label: '28/out', full: '28 de outubro', day: 'Quarta', hora: '18h às 19h30' }
-    // Domingo removido deste período. Para reativar, descomente e ajuste a data:
-    // , { key: '2026-10-04', label: '04/out', full: '04 de outubro', day: 'Domingo', hora: '17h às 18h30' }
+    { key: '2026-11-04', label: '04/nov', full: '04 de novembro', day: 'Quarta', hora: '18h às 19h30' },
+    { key: '2026-11-07', label: '07/nov', full: '07 de novembro', day: 'Sábado', hora: '10h às 11h30' },
+    { key: '2026-11-18', label: '18/nov', full: '18 de novembro', day: 'Quarta', hora: '18h às 19h30' },
+    { key: '2026-11-22', label: '22/nov', full: '22 de novembro', day: 'Domingo', hora: '17h às 18h30' },
+    { key: '2026-11-28', label: '28/nov', full: '28 de novembro', day: 'Sábado', hora: '09h30 às 11h' }
   ];
 }
 
