@@ -4,7 +4,7 @@
  */
 
 var SHEET_ID = '1ZUdYCsNxyt4z8B5KgdtQNpBKHJxuMQAI0EW4fT68akc';
-var DATE_COLS = ['04/nov', '07/nov', '18/nov', '22/nov', '28/nov'];
+var DATE_COLS = ['04/nov', '07/nov', '14/nov', '18/nov', '22/nov'];
 var RECEIVED_AT_COL = 7; // Coluna G (Nome + 5 datas + Recebido em)
 var MINISTRY_NAME = 'Evangelismo & Integração';
 var ROLE_VOLUNTEER = 'Voluntário';
@@ -12,7 +12,7 @@ var ROLE_LEADER = 'Líder';
 var ESCALA_HEADERS = ['Data', 'Nome', 'Função', 'Ministério', 'Lider'];
 
 /** Ordem cronológica das datas da escala (igual ao GROUP_DATES no front). */
-var SCHEDULE_DATE_KEYS = ['2026-11-04', '2026-11-07', '2026-11-18', '2026-11-22', '2026-11-28'];
+var SCHEDULE_DATE_KEYS = ['2026-11-04', '2026-11-07', '2026-11-14', '2026-11-18', '2026-11-22'];
 var ACTIVE_PERIOD = '2026-11';
 
 /* ════════════════════════════════════════
@@ -547,9 +547,9 @@ function getDefaultScheduleDates() {
   return [
     { key: '2026-11-04', label: '04/nov', full: '04 de novembro', day: 'Quarta', hora: '18h às 19h30' },
     { key: '2026-11-07', label: '07/nov', full: '07 de novembro', day: 'Sábado', hora: '10h às 11h30' },
+    { key: '2026-11-14', label: '14/nov', full: '14 de novembro', day: 'Sábado', hora: '09h30 às 11h' },
     { key: '2026-11-18', label: '18/nov', full: '18 de novembro', day: 'Quarta', hora: '18h às 19h30' },
-    { key: '2026-11-22', label: '22/nov', full: '22 de novembro', day: 'Domingo', hora: '17h às 18h30' },
-    { key: '2026-11-28', label: '28/nov', full: '28 de novembro', day: 'Sábado', hora: '09h30 às 11h' }
+    { key: '2026-11-22', label: '22/nov', full: '22 de novembro', day: 'Domingo', hora: '17h às 18h30' }
   ];
 }
 
